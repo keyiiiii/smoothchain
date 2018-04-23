@@ -22,6 +22,10 @@ app.get('/add/:data', (req, res) => {
   res.json(newBlockchain);
 });
 
+app.get('/chain', (_, res) => {
+  res.json(blockChain);
+});
+
 app.listen(3000, () => {
    console.log('port 3000');
 });
