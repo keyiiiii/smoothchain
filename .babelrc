@@ -1,0 +1,18 @@
+{
+  "presets": [
+    "@babel/preset-typescript",
+    "@babel/preset-es2016",
+    "@babel/preset-es2017",
+    ["env", {
+      "targets": {
+        "node": "current"
+      }
+    }]
+  ],
+  "plugins": [
+      "@babel/plugin-proposal-object-rest-spread",
+      "@babel/plugin-syntax-object-rest-spread",
+      "@babel/plugin-proposal-class-properties",
+      "@babel/plugin-syntax-class-properties"
+    ]
+}

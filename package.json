@@ -1,0 +1,32 @@
+{
+  "name": "blockchain",
+  "version": "0.0.1",
+  "description": "",
+  "main": "main.ts",
+  "scripts": {
+    "build:dev": "babel src -w -x '.ts' -d build",
+    "serve": "nodemon build/main.js",
+    "start": "run-p build:dev serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "keyiiiii",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.46",
+    "@babel/core": "^7.0.0-beta.46",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.46",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.46",
+    "@babel/plugin-syntax-class-properties": "^7.0.0-beta.46",
+    "@babel/plugin-syntax-object-rest-spread": "^7.0.0-beta.46",
+    "@babel/preset-es2016": "^7.0.0-beta.46",
+    "@babel/preset-es2017": "^7.0.0-beta.46",
+    "@babel/preset-typescript": "^7.0.0-beta.45",
+    "babel-preset-env": "^1.6.1",
+    "nodemon": "^1.17.3",
+    "npm-run-all": "^4.1.2"
+  },
+  "dependencies": {
+    "crypto-js": "^3.1.9-1",
+    "express": "^4.16.3"
+  }
+}
