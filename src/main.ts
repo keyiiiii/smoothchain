@@ -11,10 +11,7 @@ import {
   connectToPeers,
   initP2PServer,
 } from './blockChain';
-import {
-  http_port,
-  initialPeers,
-} from './config';
+import { httpPort, initialPeers } from './config';
 
 const app = express();
 
@@ -45,12 +42,12 @@ app.get('/peers', (_, res) => {
 });
 
 app.post('/addPeer', (req, res) => {
-	console.log('req.body', req.body);
-	connectToPeers([req.body.peer], blockChain);
-	res.send();
+  console.log('req.body', req.body);
+  connectToPeers([req.body.peer], blockChain);
+  res.send();
 });
 
-app.listen(http_port, () => {
+app.listen(httpPort, () => {
   console.log('port 3000');
   connectToPeers(initialPeers, blockChain);
   initP2PServer(blockChain);

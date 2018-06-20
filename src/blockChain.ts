@@ -1,7 +1,7 @@
 import SHA256 from 'crypto-js/sha256';
 import WebSocket from 'ws';
-import { MessageType } from './constant';
-import { p2p_port } from "./config";
+import { MessageType, Conversions } from './constant';
+import { p2pPort } from './config';
 
 interface Block {
   index: number;
@@ -16,7 +16,13 @@ const sockets = [];
 type BlockChain = Block[];
 
 export function getGenesisBlock(): Block {
-  return createBlock(0, "0", 1465154705, "my genesis block!!", "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
+  return createBlock(
+    0,
+    '0',
+    1465154705, // tslint:disable-line:no-magic-numbers
+    'my genesis block!!',
+    '816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7',
+  );
 }
 
 export function getLatestBlock(blockChain: BlockChain): Block {
@@ -39,7 +45,7 @@ export function createBlock(
   };
 }
 
-export function calculateHashForBlock(block: Block) {
+export function calculateHashForBlock(block: Block): string {
   return calculateHash(
     block.index,
     block.previousHash,
@@ -63,7 +69,7 @@ export function generateNextBlock(
 ): Block {
   const previousBlock = getLatestBlock(blockChain);
   const nextIndex = previousBlock.index + 1;
-  const nextTimestamp = ~~(Date.now() / 1000);
+  const nextTimestamp = ~~(Date.now() / Conversions.sec);
   const nextHash = calculateHash(
     nextIndex,
     previousBlock.hash,
@@ -90,7 +96,9 @@ export function isValidNewBlock(
     console.log('invalid previousHash');
     return false;
   } else if (calculateHashForBlock(newBlock) !== newBlock.hash) {
-    console.log(`invalid hash: ${calculateHashForBlock(newBlock)} ${newBlock.hash}`);
+    console.log(
+      `invalid hash: ${calculateHashForBlock(newBlock)} ${newBlock.hash}`,
+    );
     return false;
   }
   return true;
@@ -123,10 +131,10 @@ export function addBlock(blockChain: BlockChain, newBlock: Block): BlockChain {
 }
 
 export function responseLatestMsg(blockchain: BlockChain) {
-	return {
-		type: MessageType.RESPONSE_BLOCKCHAIN,
-		data: JSON.stringify([getLatestBlock(blockchain)]),
-	};
+  return {
+    type: MessageType.RESPONSE_BLOCKCHAIN,
+    data: JSON.stringify([getLatestBlock(blockchain)]),
+  };
 }
 
 function responseChainMsg(blockchain: BlockChain) {
@@ -149,35 +157,45 @@ function queryChainLengthMsg() {
 }
 
 function replaceChain(newBlocks: any, blockchain: BlockChain) {
-	if (isValidChain(newBlocks) && newBlocks.length > blockchain.length) {
-		console.log('Received blockchain is valid. Replacing current blockchain with received blockchain');
-		blockchain = newBlocks;
-		broadcast(responseLatestMsg(blockchain));
-	} else {
-		console.log('Received blockchain invalid');
-	}
+  if (isValidChain(newBlocks) && newBlocks.length > blockchain.length) {
+    console.log(
+      'Received blockchain is valid. Replacing current blockchain with received blockchain',
+    );
+    broadcast(responseLatestMsg(newBlocks));
+  } else {
+    console.log('Received blockchain invalid');
+  }
 }
 
 function handleBlockchainResponse(message: any, blockchain: BlockChain) {
-  const receivedBlocks = JSON.parse(message.data).sort((b1: any, b2: any) => (b1.index - b2.index));
-	const latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
-	const latestBlockHeld = getLatestBlock(blockchain);
-	if (latestBlockReceived.index > latestBlockHeld.index) {
-		console.log('blockchain possibly behind. We got: ' + latestBlockHeld.index + ' Peer got: ' + latestBlockReceived.index);
-		if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
-			console.log("We can append the received block to our chain");
-			blockchain.push(latestBlockReceived);
-			broadcast(responseLatestMsg(blockchain));
-		} else if (receivedBlocks.length === 1) {
-			console.log("We have to query the chain from our peer");
-			broadcast(queryAllMsg());
-		} else {
-			console.log("Received blockchain is longer than current blockchain");
-			replaceChain(receivedBlocks, blockchain);
-		}
-	} else {
-		console.log('received blockchain is not longer than current blockchain. Do nothing');
-	}
+  const receivedBlocks = JSON.parse(message.data).sort(
+    (b1: any, b2: any) => b1.index - b2.index,
+  );
+  const latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
+  const latestBlockHeld = getLatestBlock(blockchain);
+  if (latestBlockReceived.index > latestBlockHeld.index) {
+    console.log(
+      'blockchain possibly behind. We got: ' +
+        latestBlockHeld.index +
+        ' Peer got: ' +
+        latestBlockReceived.index,
+    );
+    if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
+      console.log('We can append the received block to our chain');
+      blockchain.push(latestBlockReceived);
+      broadcast(responseLatestMsg(blockchain));
+    } else if (receivedBlocks.length === 1) {
+      console.log('We have to query the chain from our peer');
+      broadcast(queryAllMsg());
+    } else {
+      console.log('Received blockchain is longer than current blockchain');
+      replaceChain(receivedBlocks, blockchain);
+    }
+  } else {
+    console.log(
+      'received blockchain is not longer than current blockchain. Do nothing',
+    );
+  }
 }
 
 function write(ws: any, message: any): void {
@@ -191,37 +209,37 @@ export function broadcast(message: any) {
 }
 
 function initMessageHandler(ws: any, blockChain: BlockChain) {
-	ws.on('message', (data: any) => {
-		const message = JSON.parse(data);
-		console.log('Received message' + JSON.stringify(message));
-		switch (message.type) {
-			case MessageType.QUERY_LATEST:
-				write(ws, responseLatestMsg(blockChain));
-				break;
-			case MessageType.QUERY_ALL:
-				write(ws, responseChainMsg(blockChain));
-				break;
-			case MessageType.RESPONSE_BLOCKCHAIN:
-				handleBlockchainResponse(message, blockChain);
-				break;
-		}
-	});
+  ws.on('message', (data: any) => {
+    const message = JSON.parse(data);
+    console.log('Received message' + JSON.stringify(message));
+    switch (message.type) {
+      case MessageType.QUERY_LATEST:
+        write(ws, responseLatestMsg(blockChain));
+        break;
+      case MessageType.QUERY_ALL:
+        write(ws, responseChainMsg(blockChain));
+        break;
+      case MessageType.RESPONSE_BLOCKCHAIN:
+        handleBlockchainResponse(message, blockChain);
+        break;
+    }
+  });
 }
 
 function initErrorHandler(ws: any) {
-	const closeConnection = (ws: any) => {
-		console.log('connection failed to peer: ' + ws.url);
-		sockets.splice(sockets.indexOf(ws), 1);
-	};
-	ws.on('close', () => closeConnection(ws));
-	ws.on('error', () => closeConnection(ws));
+  const closeConnection = (ws: any) => {
+    console.log('connection failed to peer: ' + ws.url);
+    sockets.splice(sockets.indexOf(ws), 1);
+  };
+  ws.on('close', () => closeConnection(ws));
+  ws.on('error', () => closeConnection(ws));
 }
 
 function initConnection(ws: any, blockChain: BlockChain) {
   sockets.push(ws);
-	initMessageHandler(ws, blockChain);
-	initErrorHandler(ws);
-	write(ws, queryChainLengthMsg());
+  initMessageHandler(ws, blockChain);
+  initErrorHandler(ws);
+  write(ws, queryChainLengthMsg());
 }
 
 export function getPeers() {
@@ -243,9 +261,9 @@ export function connectToPeers(newPeers: any, blockChain: BlockChain) {
 }
 
 export function initP2PServer(blockChain: BlockChain) {
-  const server = new WebSocket.Server({ port: p2p_port });
+  const server = new WebSocket.Server({ port: p2pPort });
   server.on('connection', (ws: any) => {
-  	initConnection(ws, blockChain);
-		console.log('listening websocket p2p port on: ' + p2p_port);
-	});
+    initConnection(ws, blockChain);
+    console.log('listening websocket p2p port on: ' + p2pPort);
+  });
 }
