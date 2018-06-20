@@ -1,4 +1,7 @@
 import SHA256 from 'crypto-js/sha256';
+import WebSocket from 'ws';
+import { MessageType } from './constant';
+import { p2p_port } from "./config";
 
 interface Block {
   index: number;
@@ -7,6 +10,8 @@ interface Block {
   data: string;
   hash: string;
 }
+
+const sockets = [];
 
 type BlockChain = Block[];
 
@@ -115,4 +120,132 @@ export function addBlock(blockChain: BlockChain, newBlock: Block): BlockChain {
     return blockChain.concat([newBlock]);
   }
   return blockChain;
+}
+
+export function responseLatestMsg(blockchain: BlockChain) {
+	return {
+		type: MessageType.RESPONSE_BLOCKCHAIN,
+		data: JSON.stringify([getLatestBlock(blockchain)]),
+	};
+}
+
+function responseChainMsg(blockchain: BlockChain) {
+  return {
+    type: MessageType.RESPONSE_BLOCKCHAIN,
+    data: JSON.stringify(blockchain),
+  };
+}
+
+function queryAllMsg() {
+  return {
+    type: MessageType.QUERY_ALL,
+  };
+}
+
+function queryChainLengthMsg() {
+  return {
+    type: MessageType.QUERY_LATEST,
+  };
+}
+
+function replaceChain(newBlocks: any, blockchain: BlockChain) {
+	if (isValidChain(newBlocks) && newBlocks.length > blockchain.length) {
+		console.log('Received blockchain is valid. Replacing current blockchain with received blockchain');
+		blockchain = newBlocks;
+		broadcast(responseLatestMsg(blockchain));
+	} else {
+		console.log('Received blockchain invalid');
+	}
+}
+
+function handleBlockchainResponse(message: any, blockchain: BlockChain) {
+  const receivedBlocks = JSON.parse(message.data).sort((b1: any, b2: any) => (b1.index - b2.index));
+	const latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
+	const latestBlockHeld = getLatestBlock(blockchain);
+	if (latestBlockReceived.index > latestBlockHeld.index) {
+		console.log('blockchain possibly behind. We got: ' + latestBlockHeld.index + ' Peer got: ' + latestBlockReceived.index);
+		if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
+			console.log("We can append the received block to our chain");
+			blockchain.push(latestBlockReceived);
+			broadcast(responseLatestMsg(blockchain));
+		} else if (receivedBlocks.length === 1) {
+			console.log("We have to query the chain from our peer");
+			broadcast(queryAllMsg());
+		} else {
+			console.log("Received blockchain is longer than current blockchain");
+			replaceChain(receivedBlocks, blockchain);
+		}
+	} else {
+		console.log('received blockchain is not longer than current blockchain. Do nothing');
+	}
+}
+
+function write(ws: any, message: any): void {
+  ws.send(JSON.stringify(message));
+}
+
+export function broadcast(message: any) {
+  sockets.forEach((socket: any) => {
+    write(socket, message);
+  });
+}
+
+function initMessageHandler(ws: any, blockChain: BlockChain) {
+	ws.on('message', (data: any) => {
+		const message = JSON.parse(data);
+		console.log('Received message' + JSON.stringify(message));
+		switch (message.type) {
+			case MessageType.QUERY_LATEST:
+				write(ws, responseLatestMsg(blockChain));
+				break;
+			case MessageType.QUERY_ALL:
+				write(ws, responseChainMsg(blockChain));
+				break;
+			case MessageType.RESPONSE_BLOCKCHAIN:
+				handleBlockchainResponse(message, blockChain);
+				break;
+		}
+	});
+}
+
+function initErrorHandler(ws: any) {
+	const closeConnection = (ws: any) => {
+		console.log('connection failed to peer: ' + ws.url);
+		sockets.splice(sockets.indexOf(ws), 1);
+	};
+	ws.on('close', () => closeConnection(ws));
+	ws.on('error', () => closeConnection(ws));
+}
+
+function initConnection(ws: any, blockChain: BlockChain) {
+  sockets.push(ws);
+	initMessageHandler(ws, blockChain);
+	initErrorHandler(ws);
+	write(ws, queryChainLengthMsg());
+}
+
+export function getPeers() {
+  return sockets.map((socket: any) => {
+    return `${socket._socket.remoteAddress}:${socket._socket.remotePort}`;
+  });
+}
+
+export function connectToPeers(newPeers: any, blockChain: BlockChain) {
+  newPeers.forEach((peer: any) => {
+    const ws = new WebSocket(peer);
+    ws.on('open', () => {
+      initConnection(ws, blockChain);
+    });
+    ws.on('error', () => {
+      console.log('connection failed');
+    });
+  });
+}
+
+export function initP2PServer(blockChain: BlockChain) {
+  const server = new WebSocket.Server({ port: p2p_port });
+  server.on('connection', (ws: any) => {
+  	initConnection(ws, blockChain);
+		console.log('listening websocket p2p port on: ' + p2p_port);
+	});
 }
