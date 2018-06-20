@@ -1,10 +1,10 @@
-import { getGenesisBlock } from "./blockChain";
-import { BlockChain } from './blockChain';
+import { getGenesisBlock } from "./blockchain";
+import { Blockchain } from './blockchain';
 
 // initialize blockchain
-let blockChain = [getGenesisBlock()];
+let blockchain = [getGenesisBlock()];
 
-export function getBlockchain(newBlockchain?: BlockChain): BlockChain {
-  newBlockchain ? blockChain = newBlockchain : '';
-  return blockChain;
+export function getBlockchain(newBlockchain?: Blockchain): Blockchain {
+  newBlockchain ? blockchain = newBlockchain : '';
+  return blockchain;
 }

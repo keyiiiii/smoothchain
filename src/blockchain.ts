@@ -14,7 +14,7 @@ interface Block {
 
 const sockets = [];
 
-export type BlockChain = Block[];
+export type Blockchain = Block[];
 
 interface BlockMessage {
   type: number;
@@ -31,8 +31,8 @@ export function getGenesisBlock(): Block {
   );
 }
 
-export function getLatestBlock(blockChain: BlockChain): Block {
-  return blockChain[blockChain.length - 1];
+export function getLatestBlock(blockchain: Blockchain): Block {
+  return blockchain[blockchain.length - 1];
 }
 
 export function createBlock(
@@ -70,10 +70,10 @@ export function calculateHash(
 }
 
 export function generateNextBlock(
-  blockChain: BlockChain,
+  blockchain: Blockchain,
   blockData: string = '',
 ): Block {
-  const previousBlock = getLatestBlock(blockChain);
+  const previousBlock = getLatestBlock(blockchain);
   const nextIndex = previousBlock.index + 1;
   const nextTimestamp = ~~(Date.now() / Conversions.sec);
   const nextHash = calculateHash(
@@ -110,18 +110,18 @@ export function isValidNewBlock(
   return true;
 }
 
-export function isValidChain(blockChainToValidate: BlockChain): boolean {
+export function isValidChain(blockchainToValidate: Blockchain): boolean {
   if (
-    JSON.stringify(blockChainToValidate[0]) !==
+    JSON.stringify(blockchainToValidate[0]) !==
     JSON.stringify(getGenesisBlock())
   ) {
     return false;
   }
 
-  const tempBlocks = [blockChainToValidate[0]];
-  for (let i = 1; i < blockChainToValidate.length; i++) {
-    if (isValidNewBlock(blockChainToValidate[i], tempBlocks[i - 1])) {
-      tempBlocks.push(blockChainToValidate[i]);
+  const tempBlocks = [blockchainToValidate[0]];
+  for (let i = 1; i < blockchainToValidate.length; i++) {
+    if (isValidNewBlock(blockchainToValidate[i], tempBlocks[i - 1])) {
+      tempBlocks.push(blockchainToValidate[i]);
     } else {
       return false;
     }
@@ -129,20 +129,20 @@ export function isValidChain(blockChainToValidate: BlockChain): boolean {
   return true;
 }
 
-export function addBlock(blockChain: BlockChain, newBlock: Block) {
-  if (isValidNewBlock(newBlock, getLatestBlock(blockChain))) {
-    blockChain.push(newBlock);
+export function addBlock(blockchain: Blockchain, newBlock: Block) {
+  if (isValidNewBlock(newBlock, getLatestBlock(blockchain))) {
+    blockchain.push(newBlock);
   }
 }
 
-export function responseLatestMsg(blockchain: BlockChain): BlockMessage {
+export function responseLatestMsg(blockchain: Blockchain): BlockMessage {
   return {
     type: MessageType.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify([getLatestBlock(blockchain)]),
   };
 }
 
-function responseChainMsg(blockchain: BlockChain): BlockMessage {
+function responseChainMsg(blockchain: Blockchain): BlockMessage {
   return {
     type: MessageType.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify(blockchain),
@@ -165,7 +165,7 @@ function queryChainLengthMsg(): {
   };
 }
 
-function replaceChain(newBlocks: BlockChain, blockchain: BlockChain): void {
+function replaceChain(newBlocks: Blockchain, blockchain: Blockchain): void {
   if (isValidChain(newBlocks) && newBlocks.length > blockchain.length) {
     console.log(
       'Received blockchain is valid. Replacing current blockchain with received blockchain',
@@ -178,7 +178,7 @@ function replaceChain(newBlocks: BlockChain, blockchain: BlockChain): void {
 
 function handleBlockchainResponse(
   message: BlockMessage,
-  blockchain: BlockChain,
+  blockchain: Blockchain,
 ): void {
   const receivedBlocks = JSON.parse(message.data).sort(
     (b1: Block, b2: Block) => b1.index - b2.index,
@@ -233,19 +233,19 @@ export function broadcast(
   });
 }
 
-function initMessageHandler(ws: WebSocket, blockChain: BlockChain): void {
+function initMessageHandler(ws: WebSocket, blockchain: Blockchain): void {
   ws.on('message', (data: string) => {
     const message = JSON.parse(data);
     console.log('Received message' + JSON.stringify(message));
     switch (message.type) {
       case MessageType.QUERY_LATEST:
-        write(ws, responseLatestMsg(blockChain));
+        write(ws, responseLatestMsg(blockchain));
         break;
       case MessageType.QUERY_ALL:
-        write(ws, responseChainMsg(blockChain));
+        write(ws, responseChainMsg(blockchain));
         break;
       case MessageType.RESPONSE_BLOCKCHAIN:
-        handleBlockchainResponse(message, blockChain);
+        handleBlockchainResponse(message, blockchain);
         break;
     }
   });
@@ -260,9 +260,9 @@ function initErrorHandler(ws: WebSocket): void {
   ws.on('error', () => closeConnection(ws));
 }
 
-function initConnection(ws: WebSocket, blockChain: BlockChain): void {
+function initConnection(ws: WebSocket, blockchain: Blockchain): void {
   sockets.push(ws);
-  initMessageHandler(ws, blockChain);
+  initMessageHandler(ws, blockchain);
   initErrorHandler(ws);
   write(ws, queryChainLengthMsg());
 }
@@ -275,12 +275,12 @@ export function getPeers(): string[] {
 
 export function connectToPeers(
   newPeers: string[],
-  blockChain: BlockChain,
+  blockchain: Blockchain,
 ): void {
   newPeers.forEach((peer: string) => {
     const ws = new WebSocket(peer);
     ws.on('open', () => {
-      initConnection(ws, blockChain);
+      initConnection(ws, blockchain);
     });
     ws.on('error', () => {
       console.log('connection failed');
@@ -288,10 +288,10 @@ export function connectToPeers(
   });
 }
 
-export function initP2PServer(blockChain: BlockChain) {
+export function initP2PServer(blockchain: Blockchain) {
   const server = new WebSocket.Server({ port: +p2pPort });
   server.on('connection', (ws: WebSocket) => {
-    initConnection(ws, blockChain);
+    initConnection(ws, blockchain);
     console.log('listening websocket p2p port on: ' + p2pPort);
   });
 }

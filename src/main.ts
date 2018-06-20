@@ -9,7 +9,7 @@ import {
   getPeers,
   connectToPeers,
   initP2PServer,
-} from './blockChain';
+} from './blockchain';
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
 
