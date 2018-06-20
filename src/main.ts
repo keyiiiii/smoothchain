@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import {
-  getGenesisBlock,
   generateNextBlock,
   addBlock,
   isValidChain,
@@ -12,29 +11,26 @@ import {
   initP2PServer,
 } from './blockChain';
 import { httpPort, initialPeers } from './config';
+import { getBlockchain } from './history';
 
 const app = express();
 
 app.use(bodyParser.json());
 
-// initialize blockchain
-let blockChain = [getGenesisBlock()];
-
 app.get('/add/:data', (req: Request, res: Response) => {
   const { data } = req.params;
-  const next = generateNextBlock(blockChain, data);
-  const newBlockchain = addBlock(blockChain, next);
+  const next = generateNextBlock(getBlockchain(), data);
+  addBlock(getBlockchain(), next)
+  const newBlockchain = getBlockchain();
   broadcast(responseLatestMsg(newBlockchain));
 
   console.log('isValidChain', isValidChain(newBlockchain));
   console.log('newBlockchain', newBlockchain);
-  // TODO: save DB
-  blockChain = newBlockchain;
   res.json(newBlockchain);
 });
 
 app.get('/chain', (_, res: Response) => {
-  res.json(blockChain);
+  res.json(getBlockchain());
 });
 
 app.get('/peers', (_, res: Response) => {
@@ -42,12 +38,12 @@ app.get('/peers', (_, res: Response) => {
 });
 
 app.post('/addPeer', (req: Request, res: Response) => {
-  connectToPeers([req.body.peer], blockChain);
+  connectToPeers([req.body.peer], getBlockchain());
   res.send();
 });
 
 app.listen(httpPort, () => {
   console.log('port 3000');
-  connectToPeers(initialPeers, blockChain);
-  initP2PServer(blockChain);
+  connectToPeers(initialPeers, getBlockchain());
+  initP2PServer(getBlockchain());
 });

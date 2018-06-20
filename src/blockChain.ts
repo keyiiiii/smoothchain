@@ -2,6 +2,7 @@ import SHA256 from 'crypto-js/sha256';
 import WebSocket from 'ws';
 import { MessageType, Conversions } from './constant';
 import { p2pPort } from './config';
+import { getBlockchain } from './history';
 
 interface Block {
   index: number;
@@ -13,7 +14,7 @@ interface Block {
 
 const sockets = [];
 
-type BlockChain = Block[];
+export type BlockChain = Block[];
 
 interface BlockMessage {
   type: number;
@@ -128,11 +129,10 @@ export function isValidChain(blockChainToValidate: BlockChain): boolean {
   return true;
 }
 
-export function addBlock(blockChain: BlockChain, newBlock: Block): BlockChain {
+export function addBlock(blockChain: BlockChain, newBlock: Block) {
   if (isValidNewBlock(newBlock, getLatestBlock(blockChain))) {
-    return blockChain.concat([newBlock]);
+    blockChain.push(newBlock);
   }
-  return blockChain;
 }
 
 export function responseLatestMsg(blockchain: BlockChain): BlockMessage {
