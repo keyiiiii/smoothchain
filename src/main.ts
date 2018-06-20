@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import {
   getGenesisBlock,
@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 // initialize blockchain
 let blockChain = [getGenesisBlock()];
 
-app.get('/add/:data', (req, res) => {
+app.get('/add/:data', (req: Request, res: Response) => {
   const { data } = req.params;
   const next = generateNextBlock(blockChain, data);
   const newBlockchain = addBlock(blockChain, next);
@@ -33,16 +33,15 @@ app.get('/add/:data', (req, res) => {
   res.json(newBlockchain);
 });
 
-app.get('/chain', (_, res) => {
+app.get('/chain', (_, res: Response) => {
   res.json(blockChain);
 });
 
-app.get('/peers', (_, res) => {
+app.get('/peers', (_, res: Response) => {
   res.send(getPeers());
 });
 
-app.post('/addPeer', (req, res) => {
-  console.log('req.body', req.body);
+app.post('/addPeer', (req: Request, res: Response) => {
   connectToPeers([req.body.peer], blockChain);
   res.send();
 });

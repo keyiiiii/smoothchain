@@ -15,6 +15,11 @@ const sockets = [];
 
 type BlockChain = Block[];
 
+interface BlockMessage {
+  type: number;
+  data: string;
+}
+
 export function getGenesisBlock(): Block {
   return createBlock(
     0,
@@ -130,33 +135,37 @@ export function addBlock(blockChain: BlockChain, newBlock: Block): BlockChain {
   return blockChain;
 }
 
-export function responseLatestMsg(blockchain: BlockChain) {
+export function responseLatestMsg(blockchain: BlockChain): BlockMessage {
   return {
     type: MessageType.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify([getLatestBlock(blockchain)]),
   };
 }
 
-function responseChainMsg(blockchain: BlockChain) {
+function responseChainMsg(blockchain: BlockChain): BlockMessage {
   return {
     type: MessageType.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify(blockchain),
   };
 }
 
-function queryAllMsg() {
+function queryAllMsg(): {
+  type: number;
+} {
   return {
     type: MessageType.QUERY_ALL,
   };
 }
 
-function queryChainLengthMsg() {
+function queryChainLengthMsg(): {
+  type: number;
+} {
   return {
     type: MessageType.QUERY_LATEST,
   };
 }
 
-function replaceChain(newBlocks: any, blockchain: BlockChain) {
+function replaceChain(newBlocks: BlockChain, blockchain: BlockChain): void {
   if (isValidChain(newBlocks) && newBlocks.length > blockchain.length) {
     console.log(
       'Received blockchain is valid. Replacing current blockchain with received blockchain',
@@ -167,9 +176,12 @@ function replaceChain(newBlocks: any, blockchain: BlockChain) {
   }
 }
 
-function handleBlockchainResponse(message: any, blockchain: BlockChain) {
+function handleBlockchainResponse(
+  message: BlockMessage,
+  blockchain: BlockChain,
+): void {
   const receivedBlocks = JSON.parse(message.data).sort(
-    (b1: any, b2: any) => b1.index - b2.index,
+    (b1: Block, b2: Block) => b1.index - b2.index,
   );
   const latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
   const latestBlockHeld = getLatestBlock(blockchain);
@@ -198,18 +210,31 @@ function handleBlockchainResponse(message: any, blockchain: BlockChain) {
   }
 }
 
-function write(ws: any, message: any): void {
+function write(
+  ws: WebSocket,
+  message:
+    | BlockMessage
+    | {
+        type: number;
+      },
+): void {
   ws.send(JSON.stringify(message));
 }
 
-export function broadcast(message: any) {
-  sockets.forEach((socket: any) => {
+export function broadcast(
+  message:
+    | BlockMessage
+    | {
+        type: number;
+      },
+) {
+  sockets.forEach((socket: WebSocket) => {
     write(socket, message);
   });
 }
 
-function initMessageHandler(ws: any, blockChain: BlockChain) {
-  ws.on('message', (data: any) => {
+function initMessageHandler(ws: WebSocket, blockChain: BlockChain): void {
+  ws.on('message', (data: string) => {
     const message = JSON.parse(data);
     console.log('Received message' + JSON.stringify(message));
     switch (message.type) {
@@ -226,8 +251,8 @@ function initMessageHandler(ws: any, blockChain: BlockChain) {
   });
 }
 
-function initErrorHandler(ws: any) {
-  const closeConnection = (ws: any) => {
+function initErrorHandler(ws: WebSocket): void {
+  const closeConnection = (ws: WebSocket) => {
     console.log('connection failed to peer: ' + ws.url);
     sockets.splice(sockets.indexOf(ws), 1);
   };
@@ -235,21 +260,24 @@ function initErrorHandler(ws: any) {
   ws.on('error', () => closeConnection(ws));
 }
 
-function initConnection(ws: any, blockChain: BlockChain) {
+function initConnection(ws: WebSocket, blockChain: BlockChain): void {
   sockets.push(ws);
   initMessageHandler(ws, blockChain);
   initErrorHandler(ws);
   write(ws, queryChainLengthMsg());
 }
 
-export function getPeers() {
+export function getPeers(): string[] {
   return sockets.map((socket: any) => {
     return `${socket._socket.remoteAddress}:${socket._socket.remotePort}`;
   });
 }
 
-export function connectToPeers(newPeers: any, blockChain: BlockChain) {
-  newPeers.forEach((peer: any) => {
+export function connectToPeers(
+  newPeers: string[],
+  blockChain: BlockChain,
+): void {
+  newPeers.forEach((peer: string) => {
     const ws = new WebSocket(peer);
     ws.on('open', () => {
       initConnection(ws, blockChain);
@@ -261,8 +289,8 @@ export function connectToPeers(newPeers: any, blockChain: BlockChain) {
 }
 
 export function initP2PServer(blockChain: BlockChain) {
-  const server = new WebSocket.Server({ port: p2pPort });
-  server.on('connection', (ws: any) => {
+  const server = new WebSocket.Server({ port: +p2pPort });
+  server.on('connection', (ws: WebSocket) => {
     initConnection(ws, blockChain);
     console.log('listening websocket p2p port on: ' + p2pPort);
   });
