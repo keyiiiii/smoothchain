@@ -1,8 +1,9 @@
 import WebSocket from 'ws';
-import { getLatestBlock, isValidChain, responseLatestMsg } from './blockchain';
+import { getLatestBlock, isValidChain } from './blockchain';
 import { p2pPort } from './config';
 import { MessageType } from './constant';
 import { Block, Blockchain, BlockMessage } from './types';
+import { getAccounts } from './state/account';
 
 const sockets = [];
 
@@ -10,6 +11,13 @@ function responseChainMsg(blockchain: Blockchain): BlockMessage {
   return {
     type: MessageType.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify(blockchain),
+  };
+}
+
+export function responseLatestMsg(blockchain: Blockchain): BlockMessage {
+  return {
+    type: MessageType.RESPONSE_BLOCKCHAIN,
+    data: JSON.stringify([getLatestBlock(blockchain)]),
   };
 }
 

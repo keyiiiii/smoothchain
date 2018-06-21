@@ -2,6 +2,7 @@ const MessageType = {
   QUERY_LATEST: 0,
   QUERY_ALL: 1,
   RESPONSE_BLOCKCHAIN: 2,
+  RESPONSE_ACCOUNTS_STATE: 3,
 };
 
 // tslint:disable:no-magic-numbers
