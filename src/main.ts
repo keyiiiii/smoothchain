@@ -5,11 +5,8 @@ import {
   addBlock,
   isValidChain,
   responseLatestMsg,
-  broadcast,
-  getPeers,
-  connectToPeers,
-  initP2PServer,
 } from './blockchain';
+import { broadcast, getPeers, connectToPeers, initP2PServer } from './network';
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
 
@@ -20,7 +17,7 @@ app.use(bodyParser.json());
 app.get('/add/:data', (req: Request, res: Response) => {
   const { data } = req.params;
   const next = generateNextBlock(getBlockchain(), data);
-  addBlock(getBlockchain(), next)
+  addBlock(getBlockchain(), next);
   const newBlockchain = getBlockchain();
   broadcast(responseLatestMsg(newBlockchain));
 
