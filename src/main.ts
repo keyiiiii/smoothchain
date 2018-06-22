@@ -16,6 +16,16 @@ const app = express();
 
 app.use(bodyParser.json());
 
+// CORSを許可する
+app.use(function(_, res: Response, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept',
+  );
+  next();
+});
+
 /**
  * トランザクション作成
  */
