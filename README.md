@@ -20,19 +20,3 @@ yarn
 ```sh
 yarn start
 ```
-
-
-## see browser
-```
-http://localhost:3000/add/{data}
-```
-
-add data
-
-![sample](https://github.com/keyiiiii/blockchain/blob/master/assets/sample.gif)
-
-show blockchain
-
-```
-http://localhost:3000/chain
-```
