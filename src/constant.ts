@@ -1,10 +1,9 @@
 // tslint:disable:no-magic-numbers
-const MESSAGE_TYPE = {
-  QUERY_LATEST: 0,
-  QUERY_ALL: 1,
-  RESPONSE_BLOCKCHAIN: 2,
-  RESPONSE_ACCOUNTS_STATE: 3,
-};
+enum MESSAGE_TYPE {
+  QUERY_LATEST,
+  QUERY_ALL,
+  RESPONSE_BLOCKCHAIN,
+}
 
 const CONVERSIONS = {
   sec: 1000,
@@ -13,8 +12,4 @@ const CONVERSIONS = {
 const TOTAL_SUPPLY = 10000;
 // tslint:enable:no-magic-numbers
 
-export {
-  MESSAGE_TYPE,
-  CONVERSIONS,
-  TOTAL_SUPPLY,
-};
+export { MESSAGE_TYPE, CONVERSIONS, TOTAL_SUPPLY };

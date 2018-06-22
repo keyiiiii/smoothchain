@@ -1,5 +1,5 @@
 import SHA256 from 'crypto-js/sha256';
-import { Conversions } from './constant';
+import { CONVERSIONS } from './constant';
 import { Block, Blockchain, Transfer } from './types';
 import { getGenesisBlock } from './history';
 
@@ -31,7 +31,7 @@ export function generateNextBlock(
 ): Block {
   const previousBlock = getLatestBlock(blockchain);
   const nextIndex = previousBlock.index + 1;
-  const nextTimestamp = ~~(Date.now() / Conversions.sec);
+  const nextTimestamp = ~~(Date.now() / CONVERSIONS.sec);
   const nextHash = calculateHash(
     nextIndex,
     previousBlock.hash,
