@@ -1,14 +1,20 @@
-const MessageType = {
+// tslint:disable:no-magic-numbers
+const MESSAGE_TYPE = {
   QUERY_LATEST: 0,
   QUERY_ALL: 1,
   RESPONSE_BLOCKCHAIN: 2,
   RESPONSE_ACCOUNTS_STATE: 3,
 };
 
-// tslint:disable:no-magic-numbers
-const Conversions = {
+const CONVERSIONS = {
   sec: 1000,
 };
+
+const TOTAL_SUPPLY = 10000;
 // tslint:enable:no-magic-numbers
 
-export { MessageType, Conversions };
+export {
+  MESSAGE_TYPE,
+  CONVERSIONS,
+  TOTAL_SUPPLY,
+};

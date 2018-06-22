@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { getLatestBlock, isValidChain } from './blockchain';
 import { p2pPort } from './config';
-import { MessageType } from './constant';
+import { MESSAGE_TYPE } from './constant';
 import { Block, Blockchain, PeerMessage } from './types';
 import { getAccounts, replaceAccounts } from './state/account';
 
@@ -9,7 +9,7 @@ const sockets = [];
 
 function responseChainMsg(blockchain: Blockchain): PeerMessage {
   return {
-    type: MessageType.RESPONSE_BLOCKCHAIN,
+    type: MESSAGE_TYPE.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify(blockchain),
     accounts: JSON.stringify(getAccounts()),
   };
@@ -17,7 +17,7 @@ function responseChainMsg(blockchain: Blockchain): PeerMessage {
 
 export function responseLatestMsg(blockchain: Blockchain): PeerMessage {
   return {
-    type: MessageType.RESPONSE_BLOCKCHAIN,
+    type: MESSAGE_TYPE.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify([getLatestBlock(blockchain)]),
     accounts: JSON.stringify(getAccounts()),
   };
@@ -27,7 +27,7 @@ function queryAllMsg(): {
   type: number;
 } {
   return {
-    type: MessageType.QUERY_ALL,
+    type: MESSAGE_TYPE.QUERY_ALL,
   };
 }
 
@@ -35,7 +35,7 @@ function queryChainLengthMsg(): {
   type: number;
 } {
   return {
-    type: MessageType.QUERY_LATEST,
+    type: MESSAGE_TYPE.QUERY_LATEST,
   };
 }
 
@@ -121,13 +121,13 @@ function initMessageHandler(ws: WebSocket, blockchain: Blockchain): void {
     const message = JSON.parse(data);
     console.log('Received message' + JSON.stringify(message));
     switch (message.type) {
-      case MessageType.QUERY_LATEST:
+      case MESSAGE_TYPE.QUERY_LATEST:
         write(ws, responseLatestMsg(blockchain));
         break;
-      case MessageType.QUERY_ALL:
+      case MESSAGE_TYPE.QUERY_ALL:
         write(ws, responseChainMsg(blockchain));
         break;
-      case MessageType.RESPONSE_BLOCKCHAIN:
+      case MESSAGE_TYPE.RESPONSE_BLOCKCHAIN:
         handleBlockchainResponse(message, blockchain);
         break;
     }

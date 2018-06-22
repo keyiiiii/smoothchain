@@ -2,6 +2,8 @@
  * Account State
  */
 
+import { TOTAL_SUPPLY } from '../constant';
+
 interface Account {
   address: string;
   value: number;
@@ -14,7 +16,7 @@ type Accounts = Account[];
 let accounts: Accounts = [
   {
     address: '1',
-    value: 10000,
+    value: TOTAL_SUPPLY,
   },
 ];
 
