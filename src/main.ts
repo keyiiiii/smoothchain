@@ -10,26 +10,16 @@ import {
 } from './network';
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
-import { transferValue } from './state/account';
+import { transferValue, getValue } from './state/account';
 
 const app = express();
 
 app.use(bodyParser.json());
 
-// FIXME: deprecated
-app.get('/add/:data', (req: Request, res: Response) => {
-  const { data } = req.params;
-  const next = generateNextBlock(getBlockchain(), data);
-  addBlock(getBlockchain(), next);
-  const newBlockchain = getBlockchain();
-  broadcast(responseLatestMsg(newBlockchain));
-
-  console.log('isValidChain', isValidChain(newBlockchain));
-  console.log('newBlockchain', newBlockchain);
-  res.json(newBlockchain);
-});
-
-app.post('/transaction', (req: Request, res: Response) => {
+/**
+ * トランザクション作成
+ */
+app.post('/api/transaction', (req: Request, res: Response) => {
   const { from, to, value } = req.body;
   // 送金
   transferValue(from, to, value);
@@ -47,15 +37,32 @@ app.post('/transaction', (req: Request, res: Response) => {
   res.json(newBlockchain);
 });
 
-app.get('/chain', (_, res: Response) => {
+/**
+ * ブロックチェーンをみる
+ */
+app.get('/api/chain', (_, res: Response) => {
   res.json(getBlockchain());
 });
 
-app.get('/peers', (_, res: Response) => {
+/**
+ * 自分の保有量を確認
+ */
+app.get('/api/account/:address', (req: Request, res: Response) => {
+  const { address } = req.params;
+  res.json(getValue(address));
+});
+
+/**
+ * 接続済みのノードを確認
+ */
+app.get('/api/peers', (_, res: Response) => {
   res.send(getPeers());
 });
 
-app.post('/addPeer', (req: Request, res: Response) => {
+/**
+ * ノード接続
+ */
+app.post('/api/addPeer', (req: Request, res: Response) => {
   connectToPeers([req.body.peer], getBlockchain());
   res.send();
 });
