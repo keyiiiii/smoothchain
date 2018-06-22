@@ -14,7 +14,8 @@ export interface Block {
 
 export type Blockchain = Block[];
 
-export interface BlockMessage {
+export interface PeerMessage {
   type: number;
   data: string;
+  accounts: string;
 }

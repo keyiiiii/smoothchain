@@ -2,22 +2,24 @@ import WebSocket from 'ws';
 import { getLatestBlock, isValidChain } from './blockchain';
 import { p2pPort } from './config';
 import { MessageType } from './constant';
-import { Block, Blockchain, BlockMessage } from './types';
-import { getAccounts } from './state/account';
+import { Block, Blockchain, PeerMessage } from './types';
+import { getAccounts, replaceAccounts } from './state/account';
 
 const sockets = [];
 
-function responseChainMsg(blockchain: Blockchain): BlockMessage {
+function responseChainMsg(blockchain: Blockchain): PeerMessage {
   return {
     type: MessageType.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify(blockchain),
+    accounts: JSON.stringify(getAccounts()),
   };
 }
 
-export function responseLatestMsg(blockchain: Blockchain): BlockMessage {
+export function responseLatestMsg(blockchain: Blockchain): PeerMessage {
   return {
     type: MessageType.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify([getLatestBlock(blockchain)]),
+    accounts: JSON.stringify(getAccounts()),
   };
 }
 
@@ -48,8 +50,13 @@ function replaceChain(newBlocks: Blockchain, blockchain: Blockchain): void {
   }
 }
 
+function handleReplaceAccounts(accountMessage: string) {
+  const newAccounts = JSON.parse(accountMessage);
+  replaceAccounts(newAccounts);
+}
+
 function handleBlockchainResponse(
-  message: BlockMessage,
+  message: PeerMessage,
   blockchain: Blockchain,
 ): void {
   const receivedBlocks = JSON.parse(message.data).sort(
@@ -68,9 +75,13 @@ function handleBlockchainResponse(
       console.log('We can append the received block to our chain');
       blockchain.push(latestBlockReceived);
       broadcast(responseLatestMsg(blockchain));
+
+      handleReplaceAccounts(message.accounts);
     } else if (receivedBlocks.length === 1) {
       console.log('We have to query the chain from our peer');
       broadcast(queryAllMsg());
+
+      handleReplaceAccounts(message.accounts);
     } else {
       console.log('Received blockchain is longer than current blockchain');
       replaceChain(receivedBlocks, blockchain);
@@ -85,7 +96,7 @@ function handleBlockchainResponse(
 function write(
   ws: WebSocket,
   message:
-    | BlockMessage
+    | PeerMessage
     | {
         type: number;
       },
@@ -95,7 +106,7 @@ function write(
 
 export function broadcast(
   message:
-    | BlockMessage
+    | PeerMessage
     | {
         type: number;
       },
