@@ -1,5 +1,10 @@
+/**
+ * FIXME: replace jwt
+ */
+
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
+import SHA256 from 'crypto-js/sha256';
 import { generateNextBlock, addBlock, isValidChain } from './blockchain';
 import {
   broadcast,
@@ -27,10 +32,29 @@ app.use(function(_, res: Response, next) {
 });
 
 /**
+ * アカウント発行
+ * 重複考えてないしテキトー実装なのでマジで直す
+ */
+app.post('/api/account', (req: Request, res: Response) => {
+  const { seed } = req.body;
+  console.log('seed', seed);
+  res.json({
+    address: SHA256(seed).toString(),
+  });
+});
+
+
+/**
  * トランザクション作成
  */
 app.post('/api/transaction', (req: Request, res: Response) => {
-  const { from, to, value } = req.body;
+  const { from, to, seed } = req.body;
+  const value = parseInt(req.body.value, 10);
+
+  if (SHA256(seed).toString() !== from) {
+    res.status(401).send();
+    return;
+  }
   // 送金
   transferValue(from, to, value);
 
@@ -44,7 +68,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
 
   console.log('isValidChain', isValidChain(newBlockchain));
   console.log('newBlockchain', newBlockchain);
-  res.json(newBlockchain);
+  res.json(next);
 });
 
 /**
@@ -59,7 +83,9 @@ app.get('/api/chain', (_, res: Response) => {
  */
 app.get('/api/account/:address', (req: Request, res: Response) => {
   const { address } = req.params;
-  res.json(getValue(address));
+  res.json({
+    balance: getValue(address),
+  });
 });
 
 /**
@@ -78,7 +104,7 @@ app.post('/api/addPeer', (req: Request, res: Response) => {
 });
 
 app.listen(httpPort, () => {
-  console.log('port 3000');
+  console.log('port', httpPort);
   connectToPeers(initialPeers, getBlockchain());
   initP2PServer(getBlockchain());
 });
