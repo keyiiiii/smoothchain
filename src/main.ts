@@ -81,7 +81,7 @@ app.get('/api/chain', (_, res: Response) => {
 /**
  * 自分の保有量を確認
  */
-app.get('/api/account/:address', (req: Request, res: Response) => {
+app.get('/api/balance/:address', (req: Request, res: Response) => {
   const { address } = req.params;
   res.json({
     balance: getValue(address),
