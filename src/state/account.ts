@@ -49,6 +49,7 @@ export function putAccount(putAccount: Account): void {
 }
 
 // Account(from) の残高を確認して 残高 > 送る量 なら指定した Account に送金する
+// TODO: 総量が TOTAL_SUPPLY を超えないようにチェックする
 export function transferValue(from: string, to: string, value: number): void {
   if (getValue(from) > value) {
     const fromAccount = {
