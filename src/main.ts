@@ -51,6 +51,12 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const { from, to, seed } = req.body;
   const value = parseInt(req.body.value, 10);
 
+  if (from === to) {
+    // TODO: エラーコード
+    res.send();
+    return;
+  }
+
   if (SHA256(seed).toString() !== from) {
     res.status(401).send();
     return;
