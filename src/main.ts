@@ -16,6 +16,7 @@ import {
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
 import { transferValue, getValue } from './state/account';
+import { CONVERSIONS } from "./constant";
 
 const app = express();
 
@@ -67,6 +68,38 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const data = {
     transfer: { from, to, value },
   };
+  const next = generateNextBlock(getBlockchain(), data);
+  addBlock(getBlockchain(), next);
+  const newBlockchain = getBlockchain();
+  broadcast(responseLatestMsg(newBlockchain));
+
+  console.log('isValidChain', isValidChain(newBlockchain));
+  console.log('newBlockchain', newBlockchain);
+  res.json(next);
+});
+
+
+/**
+ * token作成
+ */
+app.post('/api/assets/issue', (req: Request, res: Response) => {
+  const { from, seed, name, description  } = req.body;
+  const total = parseInt(req.body.total, 10);
+  const decimals = parseInt(req.body.decimals, 10);
+
+  if (SHA256(seed).toString() !== from) {
+    res.status(401).send();
+    return;
+  }
+  // TODO: token 発行 state 保持
+  // transferValue(from, to, value);
+  const timestamp = ~~(Date.now() / CONVERSIONS.sec);
+  const id = SHA256(seed + name + timestamp).toString();
+
+  const data = {
+    assets: { id, from, name, description, total, decimals },
+  };
+  // TODO: block生成共通化
   const next = generateNextBlock(getBlockchain(), data);
   addBlock(getBlockchain(), next);
   const newBlockchain = getBlockchain();
