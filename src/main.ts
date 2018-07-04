@@ -17,6 +17,7 @@ import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
 import { transferValue, getValue } from './state/account';
 import { CONVERSIONS } from "./constant";
+import { getAssets } from "./state/assets";
 
 const app = express();
 
@@ -108,6 +109,10 @@ app.post('/api/assets/issue', (req: Request, res: Response) => {
   console.log('isValidChain', isValidChain(newBlockchain));
   console.log('newBlockchain', newBlockchain);
   res.json(next);
+});
+
+app.get('/api/assets/list', (_, res: Response) => {
+  res.json(getAssets());
 });
 
 /**
