@@ -16,6 +16,7 @@ import {
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
 import { transferValue, getValue } from './state/account';
+import { putAssets } from './state/assets';
 import { CONVERSIONS, STATUS_CODE } from './constant';
 import { getAssets } from './state/assets';
 
@@ -90,10 +91,10 @@ app.post('/api/assets/issue', (req: Request, res: Response) => {
     res.status(STATUS_CODE.UNAUTHORIZED).send();
     return;
   }
-  // TODO: token 発行 state 保持
-  // transferValue(from, to, value);
   const timestamp = ~~(Date.now() / CONVERSIONS.sec);
   const id = SHA256(seed + name + timestamp).toString();
+
+  putAssets({ id, name, description, total, decimals });
 
   const data = {
     assets: { id, from, name, description, total, decimals },

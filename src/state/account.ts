@@ -86,6 +86,8 @@ export function transferValue(payload: PutAccountPayload): void {
     putAccount(fromAccount, tokenId);
     putAccount(toAccount, tokenId);
 
+    console.log('accounts', accounts);
+
     return;
   } else {
     throw new Error('failed transfer');

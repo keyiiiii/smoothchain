@@ -18,9 +18,9 @@ type Assets = Asset[];
 // 初期値
 export let assets: Assets = [
   {
-    id: '',
-    name: '',
-    description: '',
+    id: NATIVE_TOKEN.ID,
+    name: NATIVE_TOKEN.NAME,
+    description: NATIVE_TOKEN.DESCRIPTION,
     total: NATIVE_TOKEN.TOTAL,
     decimals: NATIVE_TOKEN.DECIMALS,
   },
@@ -34,4 +34,11 @@ export function replaceAssets(newAssets: Assets): void {
 // すべての Assets を返す
 export function getAssets(): Assets {
   return [...assets];
+}
+
+export function putAssets(putAsset: Asset): void {
+  replaceAssets(getAssets().filter((asset: Asset) => asset.id !== putAsset.id));
+  assets.push(putAsset);
+
+  console.log('assets', assets);
 }
