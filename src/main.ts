@@ -119,17 +119,17 @@ app.post('/api/assets/issue', (req: Request, res: Response) => {
 });
 
 /**
- * トークンリスト
- */
-app.get('/api/assets/list', (_, res: Response) => {
-  res.json(getAssets());
-});
-
-/**
  * アカウントリスト
  */
 app.get('/api/account/list', (_, res: Response) => {
   res.json(getAccounts());
+});
+
+/**
+ * トークンリスト
+ */
+app.get('/api/assets/list', (_, res: Response) => {
+  res.json(getAssets());
 });
 
 /**
