@@ -3,7 +3,7 @@
  */
 
 import { NATIVE_TOKEN } from '../constant';
-import { Asset, Assets, getAssets } from "./assets";
+import { Asset, Assets, getAssets } from './assets';
 
 interface Account {
   address: string;
@@ -56,7 +56,7 @@ export function getAccountAssets(address: string): Assets {
           }
         });
       }
-    })
+    });
   });
   return assets;
 }
@@ -86,7 +86,12 @@ export function putAccount(putAccount: Account, tokenId: string): void {
     ),
     tokenId,
   );
-  accounts[tokenId].push(putAccount);
+  accounts[tokenId] = [putAccount];
+}
+
+// accounts に追加
+export function postAccount(postAccount: Account, tokenId: string): void {
+  accounts[tokenId] = [postAccount];
 }
 
 // Account(from) の残高を確認して 残高 > 送る量 なら指定した Account に送金する

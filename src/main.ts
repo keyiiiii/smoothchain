@@ -15,10 +15,15 @@ import {
 } from './network';
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
-import { transferValue, getValue, getAccounts, getAccountAssets } from './state/account';
-import { putAssets } from './state/assets';
+import {
+  transferValue,
+  getValue,
+  getAccounts,
+  getAccountAssets,
+  postAccount,
+} from './state/account';
+import { putAssets, getAssets } from './state/assets';
 import { CONVERSIONS, STATUS_CODE } from './constant';
-import { getAssets } from './state/assets';
 
 const app = express();
 
@@ -97,6 +102,7 @@ app.post('/api/assets/issue', (req: Request, res: Response) => {
   const id = SHA256(seed + name + timestamp).toString();
 
   putAssets({ id, name, description, total, decimals });
+  postAccount({ address: from, value: total }, id);
 
   const data = {
     assets: { id, from, name, description, total, decimals },

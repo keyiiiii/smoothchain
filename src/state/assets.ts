@@ -36,6 +36,7 @@ export function getAssets(): Assets {
   return [...assets];
 }
 
+// assets にない場合は追加、ある場合は置き換える
 export function putAssets(putAsset: Asset): void {
   replaceAssets(getAssets().filter((asset: Asset) => asset.id !== putAsset.id));
   assets.push(putAsset);
