@@ -25,10 +25,11 @@ interface PutAccountPayload {
 const accounts: AssetsAccount = {
   [NATIVE_TOKEN.ID]: [
     {
-      address: "d10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306",
-      value: NATIVE_TOKEN.TOTAL
-    }
-  ]
+      address:
+        'd10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306',
+      value: NATIVE_TOKEN.TOTAL,
+    },
+  ],
 };
 
 // Accounts の上書き
@@ -42,7 +43,10 @@ export function getAccounts(): AssetsAccount {
 }
 
 // address の残高を返す。accounts に存在しない場合は 0 を返す
-export function getValue(address: string, tokenId: string = NATIVE_TOKEN.ID): number {
+export function getValue(
+  address: string,
+  tokenId: string = NATIVE_TOKEN.ID,
+): number {
   if (!getAccounts()[tokenId]) {
     return 0;
   }

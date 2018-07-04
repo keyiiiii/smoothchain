@@ -23,7 +23,7 @@ export let assets: Assets = [
     description: '',
     total: NATIVE_TOKEN.TOTAL,
     decimals: NATIVE_TOKEN.DECIMALS,
-  }
+  },
 ];
 
 // Assets の上書き

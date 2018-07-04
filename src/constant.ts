@@ -17,6 +17,10 @@ const NATIVE_TOKEN = {
   TOTAL: 10000,
 };
 
+const STATUS_CODE = {
+  UNAUTHORIZED: 401,
+};
+
 // tslint:enable:no-magic-numbers
 
-export { MESSAGE_TYPE, CONVERSIONS, NATIVE_TOKEN };
+export { MESSAGE_TYPE, CONVERSIONS, NATIVE_TOKEN, STATUS_CODE };
