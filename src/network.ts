@@ -4,6 +4,7 @@ import { p2pPort } from './config';
 import { MESSAGE_TYPE } from './constant';
 import { Block, Blockchain, PeerMessage } from './types';
 import { getAccounts, replaceAccounts } from './state/account';
+import { getAssets, replaceAssets } from './state/assets';
 
 const sockets = [];
 
@@ -12,6 +13,7 @@ function responseChainMsg(blockchain: Blockchain): PeerMessage {
     type: MESSAGE_TYPE.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify(blockchain),
     accounts: JSON.stringify(getAccounts()),
+    assets: JSON.stringify(getAssets()),
   };
 }
 
@@ -20,6 +22,7 @@ export function responseLatestMsg(blockchain: Blockchain): PeerMessage {
     type: MESSAGE_TYPE.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify([getLatestBlock(blockchain)]),
     accounts: JSON.stringify(getAccounts()),
+    assets: JSON.stringify(getAssets()),
   };
 }
 
@@ -57,6 +60,11 @@ function handleReplaceAccounts(accountMessage: string) {
   });
 }
 
+function handleReplaceAssets(assetMessage: string) {
+  const newAssets = JSON.parse(assetMessage);
+  replaceAssets(newAssets);
+}
+
 function handleBlockchainResponse(
   message: PeerMessage,
   blockchain: Blockchain,
@@ -79,11 +87,13 @@ function handleBlockchainResponse(
       broadcast(responseLatestMsg(blockchain));
 
       handleReplaceAccounts(message.accounts);
+      handleReplaceAssets(message.assets);
     } else if (receivedBlocks.length === 1) {
       console.log('We have to query the chain from our peer');
       broadcast(queryAllMsg());
 
       handleReplaceAccounts(message.accounts);
+      handleReplaceAssets(message.assets);
     } else {
       console.log('Received blockchain is longer than current blockchain');
       replaceChain(receivedBlocks, blockchain);

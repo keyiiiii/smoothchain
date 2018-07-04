@@ -18,4 +18,5 @@ export interface PeerMessage {
   type: number;
   data: string;
   accounts: string;
+  assets: string;
 }
