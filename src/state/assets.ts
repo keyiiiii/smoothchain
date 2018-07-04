@@ -4,7 +4,7 @@
 
 import { NATIVE_TOKEN } from '../constant';
 
-interface Asset {
+export interface Asset {
   id: string;
   name: string;
   description: string;
@@ -12,7 +12,7 @@ interface Asset {
   decimals: number;
 }
 
-type Assets = Asset[];
+export type Assets = Asset[];
 
 // TODO: immutable にする
 // 初期値

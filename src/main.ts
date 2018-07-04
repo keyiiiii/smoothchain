@@ -15,7 +15,7 @@ import {
 } from './network';
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
-import { transferValue, getValue } from './state/account';
+import { transferValue, getValue, getAccounts, getAccountAssets } from './state/account';
 import { putAssets } from './state/assets';
 import { CONVERSIONS, STATUS_CODE } from './constant';
 import { getAssets } from './state/assets';
@@ -33,6 +33,8 @@ app.use(function(_, res: Response, next) {
   );
   next();
 });
+
+// TODO: route テキトーなのできれいにする
 
 /**
  * アカウント発行
@@ -115,6 +117,21 @@ app.post('/api/assets/issue', (req: Request, res: Response) => {
  */
 app.get('/api/assets/list', (_, res: Response) => {
   res.json(getAssets());
+});
+
+/**
+ * アカウントリスト
+ */
+app.get('/api/account/list', (_, res: Response) => {
+  res.json(getAccounts());
+});
+
+/**
+ * ユーザーに紐づくトークンリスト
+ */
+app.get('/api/assets/list/:address', (req: Request, res: Response) => {
+  const { address } = req.params;
+  res.json(getAccountAssets(address));
 });
 
 /**

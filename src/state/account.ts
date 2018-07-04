@@ -3,6 +3,7 @@
  */
 
 import { NATIVE_TOKEN } from '../constant';
+import { Asset, Assets, getAssets } from "./assets";
 
 interface Account {
   address: string;
@@ -40,6 +41,24 @@ export function replaceAccounts(newAccounts: Account[], tokenId: string): void {
 // すべての Accounts を返す
 export function getAccounts(): AssetsAccount {
   return Object.assign({}, accounts);
+}
+
+// Account に紐づく トークンリストを返す
+// TODO: めっちゃループしまくってるのでそろそろDB使ったほうがいいかも
+export function getAccountAssets(address: string): Assets {
+  const assets = [];
+  Object.keys(getAccounts()).forEach((tokenId: string) => {
+    getAccounts()[tokenId].forEach((account: Account) => {
+      if (account.address === address && account.value > 0) {
+        getAssets().forEach((asset: Asset) => {
+          if (asset.id === tokenId) {
+            assets.push(asset);
+          }
+        });
+      }
+    })
+  });
+  return assets;
 }
 
 // address の残高を返す。accounts に存在しない場合は 0 を返す
