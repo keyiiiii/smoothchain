@@ -13,6 +13,13 @@ interface AssetsAccount {
   [key: string]: Account[];
 }
 
+interface PutAccountPayload {
+  from: string;
+  to: string;
+  value: number;
+  tokenId?: string;
+}
+
 // TODO: immutable にする
 // 初期値
 const accounts: AssetsAccount = {
@@ -46,7 +53,7 @@ export function getValue(address: string, tokenId: string = NATIVE_TOKEN.ID): nu
 }
 
 // accounts にない場合は追加、ある場合は置き換える
-export function putAccount(putAccount: Account, tokenId: string = NATIVE_TOKEN.ID): void {
+export function putAccount(putAccount: Account, tokenId: string): void {
   if (!getAccounts()[tokenId]) {
     return;
   }
@@ -60,21 +67,21 @@ export function putAccount(putAccount: Account, tokenId: string = NATIVE_TOKEN.I
 }
 
 // Account(from) の残高を確認して 残高 > 送る量 なら指定した Account に送金する
-// TODO: 総量が NATIVE_TOKEN.TOTAL を超えないようにチェックする
-export function transferValue(from: string, to: string, value: number): void {
-  if (getValue(from) >= value) {
+// TODO: 総量が TOTAL を超えないようにチェックする
+export function transferValue(payload: PutAccountPayload): void {
+  if (getValue(payload.from) >= payload.value) {
+    const tokenId = payload.tokenId || NATIVE_TOKEN.ID;
     const fromAccount = {
-      address: from,
-      value: getValue(from) - value,
+      address: payload.from,
+      value: getValue(payload.from) - payload.value,
     };
     const toAccount = {
-      address: to,
-      value: getValue(to) + value,
+      address: payload.to,
+      value: getValue(payload.to) + payload.value,
     };
-    putAccount(fromAccount);
-    putAccount(toAccount);
+    putAccount(fromAccount, tokenId);
+    putAccount(toAccount, tokenId);
 
-    console.log('accounts', accounts);
     return;
   } else {
     throw new Error('failed transfer');

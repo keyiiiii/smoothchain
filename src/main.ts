@@ -64,7 +64,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
     return;
   }
   // 送金
-  transferValue(from, to, value);
+  transferValue({ from, to, value });
 
   const data = {
     transfer: { from, to, value },
