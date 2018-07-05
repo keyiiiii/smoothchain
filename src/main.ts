@@ -57,7 +57,7 @@ app.post('/api/account', (req: Request, res: Response) => {
  * トランザクション作成
  */
 app.post('/api/transaction', (req: Request, res: Response) => {
-  const { from, to, seed } = req.body;
+  const { from, to, seed, tokenId } = req.body;
   const value = parseInt(req.body.value, 10);
 
   if (from === to) {
@@ -71,7 +71,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
     return;
   }
   // 送金
-  transferValue({ from, to, value });
+  transferValue({ from, to, value, tokenId });
 
   const data = {
     transfer: { from, to, value },
