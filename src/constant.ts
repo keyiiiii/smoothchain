@@ -11,7 +11,7 @@ const CONVERSIONS = {
 
 const NATIVE_TOKEN = {
   ID: '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f',
-  NAME: 'nativeToken',
+  NAME: 'native token',
   DESCRIPTION: 'native token',
   DECIMALS: 0,
   TOTAL: 10000,
