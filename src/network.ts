@@ -55,8 +55,8 @@ function replaceChain(newBlocks: Blockchain, blockchain: Blockchain): void {
 
 function handleReplaceAccounts(accountMessage: string) {
   const newAssetsAccount = JSON.parse(accountMessage);
-  Object.keys(newAssetsAccount).forEach((tokenId: string) => {
-    replaceAccounts(newAssetsAccount[tokenId], tokenId);
+  Object.keys(newAssetsAccount).forEach((assetId: string) => {
+    replaceAccounts(newAssetsAccount[assetId], assetId);
   });
 }
 

@@ -57,7 +57,7 @@ app.post('/api/account', (req: Request, res: Response) => {
  * トランザクション作成
  */
 app.post('/api/transaction', (req: Request, res: Response) => {
-  const { from, to, seed, tokenId } = req.body;
+  const { from, to, seed, assetId } = req.body;
   const value = parseInt(req.body.value, 10);
 
   if (from === to) {
@@ -71,7 +71,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
     return;
   }
   // 送金
-  transferValue({ from, to, value, tokenId });
+  transferValue({ from, to, value, assetId });
 
   const data = {
     transfer: { from, to, value },
@@ -152,8 +152,9 @@ app.get('/api/chain', (_, res: Response) => {
  */
 app.get('/api/balance/:address', (req: Request, res: Response) => {
   const { address } = req.params;
+  const { assetId } = req.query;
   res.json({
-    balance: getValue(address),
+    balance: getValue(address, assetId),
   });
 });
 

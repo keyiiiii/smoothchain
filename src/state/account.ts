@@ -18,7 +18,7 @@ interface PutAccountPayload {
   from: string;
   to: string;
   value: number;
-  tokenId?: string;
+  assetId?: string;
 }
 
 // TODO: immutable にする
@@ -34,8 +34,8 @@ const accounts: AssetsAccount = {
 };
 
 // Accounts の上書き
-export function replaceAccounts(newAccounts: Account[], tokenId: string): void {
-  accounts[tokenId] = newAccounts;
+export function replaceAccounts(newAccounts: Account[], assetId: string): void {
+  accounts[assetId] = newAccounts;
 }
 
 // すべての Accounts を返す
@@ -47,11 +47,11 @@ export function getAccounts(): AssetsAccount {
 // TODO: めっちゃループしまくってるのでそろそろDB使ったほうがいいかも
 export function getAccountAssets(address: string): Assets {
   const assets = [];
-  Object.keys(getAccounts()).forEach((tokenId: string) => {
-    getAccounts()[tokenId].forEach((account: Account) => {
+  Object.keys(getAccounts()).forEach((assetId: string) => {
+    getAccounts()[assetId].forEach((account: Account) => {
       if (account.address === address && account.value > 0) {
         getAssets().forEach((asset: Asset) => {
-          if (asset.id === tokenId) {
+          if (asset.id === assetId) {
             assets.push(asset);
           }
         });
@@ -64,41 +64,41 @@ export function getAccountAssets(address: string): Assets {
 // address の残高を返す。accounts に存在しない場合は 0 を返す
 export function getValue(
   address: string,
-  tokenId: string = NATIVE_TOKEN.ID,
+  assetId: string = NATIVE_TOKEN.ID,
 ): number {
-  if (!getAccounts()[tokenId]) {
+  if (!getAccounts()[assetId]) {
     return 0;
   }
-  const account = getAccounts()[tokenId].find(
+  const account = getAccounts()[assetId].find(
     (account: Account) => account.address === address,
   );
   return account ? account.value : 0;
 }
 
 // accounts にない場合は追加、ある場合は置き換える
-export function putAccount(putAccount: Account, tokenId: string): void {
-  if (!getAccounts()[tokenId]) {
+export function putAccount(putAccount: Account, assetId: string): void {
+  if (!getAccounts()[assetId]) {
     return;
   }
   replaceAccounts(
-    getAccounts()[tokenId].filter(
+    getAccounts()[assetId].filter(
       (account: Account) => account.address !== putAccount.address,
     ),
-    tokenId,
+    assetId,
   );
-  accounts[tokenId] = [putAccount];
+  accounts[assetId] = [putAccount];
 }
 
 // accounts に追加
-export function postAccount(postAccount: Account, tokenId: string): void {
-  accounts[tokenId] = [postAccount];
+export function postAccount(postAccount: Account, assetId: string): void {
+  accounts[assetId] = [postAccount];
 }
 
 // Account(from) の残高を確認して 残高 > 送る量 なら指定した Account に送金する
 // TODO: 総量が TOTAL を超えないようにチェックする
 export function transferValue(payload: PutAccountPayload): void {
   if (getValue(payload.from) >= payload.value) {
-    const tokenId = payload.tokenId || NATIVE_TOKEN.ID;
+    const assetId = payload.assetId || NATIVE_TOKEN.ID;
     const fromAccount = {
       address: payload.from,
       value: getValue(payload.from) - payload.value,
@@ -107,8 +107,8 @@ export function transferValue(payload: PutAccountPayload): void {
       address: payload.to,
       value: getValue(payload.to) + payload.value,
     };
-    putAccount(fromAccount, tokenId);
-    putAccount(toAccount, tokenId);
+    putAccount(fromAccount, assetId);
+    putAccount(toAccount, assetId);
 
     console.log('accounts', accounts);
 
