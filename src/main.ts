@@ -23,7 +23,7 @@ import {
   postAccount,
 } from './state/account';
 import { putAssets, getAssets } from './state/assets';
-import { CONVERSIONS, STATUS_CODE } from './constant';
+import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE } from './constant';
 
 const app = express();
 
@@ -57,8 +57,9 @@ app.post('/api/account', (req: Request, res: Response) => {
  * トランザクション作成
  */
 app.post('/api/transaction', (req: Request, res: Response) => {
-  const { from, to, seed, assetId } = req.body;
+  const { from, to, seed } = req.body;
   const value = parseInt(req.body.value, 10);
+  const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
   if (from === to) {
     // TODO: エラーコード
@@ -74,7 +75,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   transferValue({ from, to, value, assetId });
 
   const data = {
-    transfer: { from, to, value },
+    transfer: { from, to, value, assetId },
   };
   const next = generateNextBlock(getBlockchain(), data);
   addBlock(getBlockchain(), next);
@@ -152,7 +153,7 @@ app.get('/api/chain', (_, res: Response) => {
  */
 app.get('/api/balance/:address', (req: Request, res: Response) => {
   const { address } = req.params;
-  const { assetId } = req.query;
+  const assetId = req.query.assetId || NATIVE_TOKEN.ID;
   res.json({
     balance: getValue(address, assetId),
   });

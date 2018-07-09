@@ -18,7 +18,7 @@ interface PutAccountPayload {
   from: string;
   to: string;
   value: number;
-  assetId?: string;
+  assetId: string;
 }
 
 // TODO: immutable にする
@@ -62,10 +62,7 @@ export function getAccountAssets(address: string): Assets {
 }
 
 // address の残高を返す。accounts に存在しない場合は 0 を返す
-export function getValue(
-  address: string,
-  assetId: string = NATIVE_TOKEN.ID,
-): number {
+export function getValue(address: string, assetId: string): number {
   if (!getAccounts()[assetId]) {
     return 0;
   }
@@ -86,7 +83,7 @@ export function putAccount(putAccount: Account, assetId: string): void {
     ),
     assetId,
   );
-  accounts[assetId] = [putAccount];
+  accounts[assetId].push(putAccount);
 }
 
 // accounts に追加
@@ -97,15 +94,15 @@ export function postAccount(postAccount: Account, assetId: string): void {
 // Account(from) の残高を確認して 残高 > 送る量 なら指定した Account に送金する
 // TODO: 総量が TOTAL を超えないようにチェックする
 export function transferValue(payload: PutAccountPayload): void {
-  if (getValue(payload.from) >= payload.value) {
-    const assetId = payload.assetId || NATIVE_TOKEN.ID;
+  const { from, value, to, assetId } = payload;
+  if (getValue(from, assetId) >= value) {
     const fromAccount = {
-      address: payload.from,
-      value: getValue(payload.from) - payload.value,
+      address: from,
+      value: getValue(from, assetId) - value,
     };
     const toAccount = {
-      address: payload.to,
-      value: getValue(payload.to) + payload.value,
+      address: to,
+      value: getValue(to, assetId) + value,
     };
     putAccount(fromAccount, assetId);
     putAccount(toAccount, assetId);
