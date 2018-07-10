@@ -57,7 +57,7 @@ app.post('/api/account', (req: Request, res: Response) => {
  * トランザクション作成
  */
 app.post('/api/transaction', (req: Request, res: Response) => {
-  const { from, to, seed } = req.body;
+  const { from, to, seed, message } = req.body;
   const value = parseInt(req.body.value, 10);
   const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
@@ -74,7 +74,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   transferValue({ from, to, value, assetId });
 
   const data = {
-    transfer: { from, to, value, assetId },
+    transfer: { from, to, value, assetId, message },
   };
   const next = generateNextBlock(getBlockchain(), data);
   addBlock(getBlockchain(), next);

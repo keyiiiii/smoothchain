@@ -2,6 +2,8 @@ export interface Transfer {
   from: string;
   to: string;
   value: number;
+  assetId: string;
+  message: string;
 }
 
 export interface Block {
