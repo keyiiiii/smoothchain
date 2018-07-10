@@ -62,8 +62,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
   if (from === to) {
-    // TODO: エラーコード
-    res.send();
+    res.status(STATUS_CODE.BADREQUEST).send();
     return;
   }
 

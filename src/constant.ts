@@ -19,6 +19,7 @@ const NATIVE_TOKEN = {
 
 const STATUS_CODE = {
   UNAUTHORIZED: 401,
+  BADREQUEST: 400,
 };
 
 const RECONNECT_TIME = 3000;
