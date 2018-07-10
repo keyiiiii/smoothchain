@@ -1,12 +1,14 @@
 import WebSocket from 'ws';
 import { getLatestBlock, isValidChain } from './blockchain';
-import { p2pPort } from './config';
-import { MESSAGE_TYPE } from './constant';
+import { initialPeers, p2pPort } from './config';
+import { MESSAGE_TYPE, RECONNECT_TIME } from './constant';
 import { Block, Blockchain, PeerMessage } from './types';
 import { getAccounts, replaceAccounts } from './state/account';
 import { getAssets, replaceAssets } from './state/assets';
+import { getBlockchain } from './history';
 
 const sockets = [];
+let reconnectTimeout;
 
 function responseChainMsg(blockchain: Blockchain): PeerMessage {
   return {
@@ -150,6 +152,13 @@ function initErrorHandler(ws: WebSocket): void {
   const closeConnection = (ws: WebSocket) => {
     console.log('connection failed to peer: ' + ws.url);
     sockets.splice(sockets.indexOf(ws), 1);
+
+    const reconnect = () => {
+      connectToPeers(initialPeers, getBlockchain());
+      clearTimeout(reconnectTimeout);
+      reconnectTimeout = setTimeout(reconnect, RECONNECT_TIME);
+    };
+    reconnect();
   };
   ws.on('close', () => closeConnection(ws));
   ws.on('error', () => closeConnection(ws));
@@ -176,6 +185,7 @@ export function connectToPeers(
     const ws = new WebSocket(peer);
     ws.on('open', () => {
       initConnection(ws, blockchain);
+      clearTimeout(reconnectTimeout);
     });
     ws.on('error', () => {
       console.log('connection failed');
