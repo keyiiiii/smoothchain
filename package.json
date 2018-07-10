@@ -5,6 +5,7 @@
   "main": "main.ts",
   "scripts": {
     "build:dev": "babel src -w -x '.ts' -d build",
+    "app": "node build/main.js",
     "serve": "nodemon build/main.js",
     "start": "run-p build:dev serve",
     "lint": "run-p tscheck tslint",
