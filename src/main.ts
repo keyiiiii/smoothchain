@@ -148,6 +148,14 @@ app.get('/api/assets/list', (_, res: Response) => {
 });
 
 /**
+ * トークン詳細
+ */
+app.get('/api/assets/:assetId', (req: Request, res: Response) => {
+  const { assetId } = req.params;
+  res.json(getAsset(assetId));
+});
+
+/**
  * ユーザーに紐づくトークンリスト
  */
 app.get('/api/assets/list/:address', (req: Request, res: Response) => {
