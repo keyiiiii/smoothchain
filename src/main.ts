@@ -22,7 +22,7 @@ import {
   getAccountAssets,
   postAccount,
 } from './state/account';
-import { putAssets, getAssets } from './state/assets';
+import { putAssets, getAssets, getAsset } from './state/assets';
 import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE } from './constant';
 
 const app = express();
@@ -61,15 +61,28 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const value = parseInt(req.body.value, 10);
   const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
+  // 送信元と送信先が一緒なら弾く
   if (from === to) {
-    res.status(STATUS_CODE.BADREQUEST).send();
+    res.status(STATUS_CODE.BAD_REQUEST).send();
     return;
   }
 
+  // seed とアドレスが一致しない場合は弾く
   if (SHA256(seed).toString() !== from) {
     res.status(STATUS_CODE.UNAUTHORIZED).send();
     return;
   }
+
+  // transferable じゃない asset は from か to が asset.from に一致する必要がある
+  const asset = getAsset(assetId);
+  if (
+    !asset.optional.transferable &&
+    !(asset.from === from || asset.from === to)
+  ) {
+    res.status(STATUS_CODE.METHOD_NOT_ALLOWED).send();
+    return;
+  }
+
   // 送金
   transferValue({ from, to, value, assetId });
 
@@ -90,22 +103,24 @@ app.post('/api/transaction', (req: Request, res: Response) => {
  * token作成
  */
 app.post('/api/assets/issue', (req: Request, res: Response) => {
-  const { from, seed, name, description } = req.body;
+  const { from, seed, name, description, optional } = req.body;
   const total = parseInt(req.body.total, 10) || 0;
   const decimals = parseInt(req.body.decimals, 10) || 0;
 
+  // seed とアドレスが一致しない場合は弾く
   if (SHA256(seed).toString() !== from) {
     res.status(STATUS_CODE.UNAUTHORIZED).send();
     return;
   }
+
   const timestamp = ~~(Date.now() / CONVERSIONS.sec);
   const id = SHA256(seed + name + timestamp).toString();
 
-  putAssets({ id, name, description, total, decimals });
+  putAssets({ from, id, name, description, total, decimals, optional });
   postAccount({ address: from, value: total }, id);
 
   const data = {
-    assets: { id, from, name, description, total, decimals },
+    assets: { id, from, name, description, total, decimals, optional },
   };
   // TODO: block生成共通化
   const next = generateNextBlock(getBlockchain(), data);

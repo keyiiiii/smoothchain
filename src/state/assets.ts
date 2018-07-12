@@ -4,12 +4,18 @@
 
 import { NATIVE_TOKEN } from '../constant';
 
+interface Optional {
+  transferable?: boolean;
+}
+
 export interface Asset {
+  from: string;
   id: string;
   name: string;
   description: string;
   total: number;
   decimals: number;
+  optional: Optional;
 }
 
 export type Assets = Asset[];
@@ -23,6 +29,10 @@ export let assets: Assets = [
     description: NATIVE_TOKEN.DESCRIPTION,
     total: NATIVE_TOKEN.TOTAL,
     decimals: NATIVE_TOKEN.DECIMALS,
+    from: '',
+    optional: {
+      transferable: true,
+    },
   },
 ];
 
@@ -42,4 +52,8 @@ export function putAssets(putAsset: Asset): void {
   assets.push(putAsset);
 
   console.log('assets', assets);
+}
+
+export function getAsset(assetId: string): Asset {
+  return getAssets().find((asset: Asset) => asset.id === assetId);
 }

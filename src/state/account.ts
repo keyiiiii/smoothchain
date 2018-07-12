@@ -95,6 +95,7 @@ export function postAccount(postAccount: Account, assetId: string): void {
 // TODO: 総量が TOTAL を超えないようにチェックする
 export function transferValue(payload: PutAccountPayload): void {
   const { from, value, to, assetId } = payload;
+  // asset情報を取得する
   if (getValue(from, assetId) >= value) {
     const fromAccount = {
       address: from,
