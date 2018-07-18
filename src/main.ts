@@ -24,6 +24,18 @@ import {
 } from './state/account';
 import { putAssets, getAssets, getAsset } from './state/assets';
 import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE, LEVY_RATE } from './constant';
+import { Block } from './types';
+
+function generateBlock(data: any): Block {
+  const next = generateNextBlock(getBlockchain(), data);
+  addBlock(getBlockchain(), next);
+  const newBlockchain = getBlockchain();
+  broadcast(responseLatestMsg(newBlockchain));
+
+  console.log('isValidChain', isValidChain(newBlockchain));
+  console.log('newBlockchain', newBlockchain);
+  return next;
+}
 
 const app = express();
 
@@ -96,14 +108,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const data = {
     transfer: { from, to, value, assetId, message },
   };
-  const next = generateNextBlock(getBlockchain(), data);
-  addBlock(getBlockchain(), next);
-  const newBlockchain = getBlockchain();
-  broadcast(responseLatestMsg(newBlockchain));
-
-  console.log('isValidChain', isValidChain(newBlockchain));
-  console.log('newBlockchain', newBlockchain);
-  res.json(next);
+  res.json(generateBlock(data));
 });
 
 /**
@@ -129,15 +134,7 @@ app.post('/api/assets/issue', (req: Request, res: Response) => {
   const data = {
     assets: { id, from, name, description, total, decimals, optional },
   };
-  // TODO: block生成共通化
-  const next = generateNextBlock(getBlockchain(), data);
-  addBlock(getBlockchain(), next);
-  const newBlockchain = getBlockchain();
-  broadcast(responseLatestMsg(newBlockchain));
-
-  console.log('isValidChain', isValidChain(newBlockchain));
-  console.log('newBlockchain', newBlockchain);
-  res.json(next);
+  res.json(generateBlock(data));
 });
 
 /**
