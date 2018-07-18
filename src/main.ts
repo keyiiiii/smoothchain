@@ -97,18 +97,32 @@ app.post('/api/transaction', (req: Request, res: Response) => {
 
   // 送金
   if (asset.optional.levy) {
+    const levyValue = Math.floor(value * LEVY_RATE);
     // 徴収分
-    transferValue({ from, to: asset.from, value: value * LEVY_RATE, assetId });
+    transferValue({ from, to: asset.from, value: levyValue, assetId });
+
+    const levyData = {
+      transfer: { from, to: asset.from, value: levyValue, assetId },
+    };
+    const levyBlock = generateBlock(levyData);
+
     // 通常分
-    transferValue({ from, to, value: value - value * LEVY_RATE, assetId });
+    transferValue({ from, to, value: value - levyValue, assetId });
+
+    const data = {
+      transfer: { from, to, value: value - levyValue, assetId, message },
+    };
+    const block = generateBlock(data);
+
+    res.json([levyBlock, block]);
   } else {
     transferValue({ from, to, value, assetId });
-  }
 
-  const data = {
-    transfer: { from, to, value, assetId, message },
-  };
-  res.json(generateBlock(data));
+    const data = {
+      transfer: { from, to, value, assetId, message },
+    };
+    res.json(generateBlock(data));
+  }
 });
 
 /**
