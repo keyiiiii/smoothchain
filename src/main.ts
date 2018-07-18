@@ -23,7 +23,7 @@ import {
   postAccount,
 } from './state/account';
 import { putAssets, getAssets, getAsset } from './state/assets';
-import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE } from './constant';
+import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE, LEVY_RATE } from './constant';
 
 const app = express();
 
@@ -84,7 +84,14 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   }
 
   // 送金
-  transferValue({ from, to, value, assetId });
+  if (asset.optional.levy) {
+    // 徴収分
+    transferValue({ from, to: asset.from, value: value * LEVY_RATE, assetId });
+    // 通常分
+    transferValue({ from, to, value: value - value * LEVY_RATE, assetId });
+  } else {
+    transferValue({ from, to, value, assetId });
+  }
 
   const data = {
     transfer: { from, to, value, assetId, message },

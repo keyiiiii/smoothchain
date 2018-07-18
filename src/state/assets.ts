@@ -6,6 +6,7 @@ import { NATIVE_TOKEN } from '../constant';
 
 interface Optional {
   transferable?: boolean;
+  levy?: boolean;
 }
 
 export interface Asset {
