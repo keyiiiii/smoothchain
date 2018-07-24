@@ -12,6 +12,8 @@ export interface Block {
   timestamp: number;
   data: Transfer | {};
   hash: string;
+  nonce: number;
+  difficulty: number;
 }
 
 export type Blockchain = Block[];

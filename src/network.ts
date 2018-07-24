@@ -1,5 +1,9 @@
 import WebSocket from 'ws';
-import { getLatestBlock, isValidChain } from './blockchain';
+import {
+  getAccumulatedDifficulty,
+  getLatestBlock,
+  isValidChain,
+} from './blockchain';
 import { initialPeers, p2pPort } from './config';
 import { MESSAGE_TYPE, RECONNECT_TIME } from './constant';
 import { Block, Blockchain, PeerMessage } from './types';
@@ -45,7 +49,10 @@ function queryChainLengthMsg(): {
 }
 
 function replaceChain(newBlocks: Blockchain, blockchain: Blockchain): void {
-  if (isValidChain(newBlocks) && newBlocks.length > blockchain.length) {
+  if (
+    isValidChain(newBlocks) &&
+    getAccumulatedDifficulty(newBlocks) > getAccumulatedDifficulty(blockchain)
+  ) {
     console.log(
       'Received blockchain is valid. Replacing current blockchain with received blockchain',
     );
