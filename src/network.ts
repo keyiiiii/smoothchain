@@ -1,9 +1,9 @@
 import WebSocket from 'ws';
 import {
   getAccumulatedDifficulty,
-  getLatestBlock,
-  isValidChain,
-} from './blockchain';
+  getLatestBlock, isValidBlockStructure,
+  isValidChain, isValidNewBlock
+} from "./blockchain";
 import { initialPeers, p2pPort } from './config';
 import { MESSAGE_TYPE, RECONNECT_TIME } from './constant';
 import { Block, Blockchain, PeerMessage } from './types';
@@ -32,19 +32,21 @@ export function responseLatestMsg(blockchain: Blockchain): PeerMessage {
   };
 }
 
-function queryAllMsg(): {
-  type: number;
-} {
+function queryAllMsg(): PeerMessage {
   return {
     type: MESSAGE_TYPE.QUERY_ALL,
+    data: '',
+    accounts: '',
+    assets: ''
   };
 }
 
-function queryChainLengthMsg(): {
-  type: number;
-} {
+function queryChainLengthMsg(): PeerMessage {
   return {
     type: MESSAGE_TYPE.QUERY_LATEST,
+    data: '',
+    accounts: '',
+    assets: '',
   };
 }
 
@@ -81,7 +83,17 @@ function handleBlockchainResponse(
   const receivedBlocks = JSON.parse(message.data).sort(
     (b1: Block, b2: Block) => b1.index - b2.index,
   );
+  if (receivedBlocks.length === 0) {
+    console.log("received block chain size of 0");
+    return;
+  }
+
   const latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
+  if (!isValidBlockStructure(latestBlockReceived)) {
+    console.log('block structure not valid');
+    return;
+  }
+
   const latestBlockHeld = getLatestBlock(blockchain);
   if (latestBlockReceived.index > latestBlockHeld.index) {
     console.log(
@@ -91,12 +103,15 @@ function handleBlockchainResponse(
         latestBlockReceived.index,
     );
     if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
-      console.log('We can append the received block to our chain');
-      blockchain.push(latestBlockReceived);
-      broadcast(responseLatestMsg(blockchain));
 
-      handleReplaceAccounts(message.accounts);
-      handleReplaceAssets(message.assets);
+      if (isValidNewBlock(latestBlockReceived, getLatestBlock(blockchain))) {
+        console.log('We can append the received block to our chain');
+        blockchain.push(latestBlockReceived);
+        broadcast(responseLatestMsg(blockchain));
+
+        handleReplaceAccounts(message.accounts);
+        handleReplaceAssets(message.assets);
+      }
     } else if (receivedBlocks.length === 1) {
       console.log('We have to query the chain from our peer');
       broadcast(queryAllMsg());
@@ -116,21 +131,13 @@ function handleBlockchainResponse(
 
 function write(
   ws: WebSocket,
-  message:
-    | PeerMessage
-    | {
-        type: number;
-      },
+  message: PeerMessage,
 ): void {
   ws.send(JSON.stringify(message));
 }
 
 export function broadcast(
-  message:
-    | PeerMessage
-    | {
-        type: number;
-      },
+  message: PeerMessage
 ) {
   sockets.forEach((socket: WebSocket) => {
     write(socket, message);

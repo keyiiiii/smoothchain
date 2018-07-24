@@ -123,7 +123,7 @@ export function generateNextBlock(
   );
 }
 
-function isValidBlockStructure(block: Block): boolean {
+export function isValidBlockStructure(block: Block): boolean {
   return (
     typeof block.index === 'number' &&
     typeof block.hash === 'string' &&
