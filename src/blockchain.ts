@@ -47,10 +47,23 @@ export function generateNextBlock(
   };
 }
 
+function isValidBlockStructure(block: Block): boolean {
+  return (
+    typeof block.index === 'number' &&
+    typeof block.hash === 'string' &&
+    typeof block.previousHash === 'string' &&
+    typeof block.timestamp === 'number'
+  );
+}
+
 export function isValidNewBlock(
   newBlock: Block,
   previousBlock: Block,
 ): boolean {
+  if (!isValidBlockStructure(newBlock)) {
+    console.log('invalid structure');
+    return false;
+  }
   if (previousBlock.index + 1 !== newBlock.index) {
     console.log('invalid index');
     return false;
