@@ -60,6 +60,7 @@ function replaceChain(newBlocks: Blockchain, blockchain: Blockchain): void {
     console.log(
       'Received blockchain is valid. Replacing current blockchain with received blockchain',
     );
+    getBlockchain(newBlocks);
     broadcast(responseLatestMsg(newBlocks));
   } else {
     console.log('Received blockchain invalid');
