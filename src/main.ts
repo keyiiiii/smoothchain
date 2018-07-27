@@ -23,7 +23,13 @@ import {
   postAccount,
 } from './state/account';
 import { putAssets, getAssets, getAsset } from './state/assets';
-import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE, LEVY_RATE, CASHBACK_RATE } from './constant';
+import {
+  CONVERSIONS,
+  NATIVE_TOKEN,
+  STATUS_CODE,
+  LEVY_RATE,
+  CASHBACK_RATE,
+} from './constant';
 import { Block } from './types';
 
 function generateBlock(data: any): Block {
@@ -115,33 +121,35 @@ app.post('/api/transaction', (req: Request, res: Response) => {
     const block = generateBlock(data);
 
     res.json([levyBlock, block]);
-
   } else if (asset.optional.cashback) {
     const cashbackValue = Math.floor(value * CASHBACK_RATE);
     // 通常分
     transferValue({ from, to, value, assetId });
 
     const data = {
-      transfer: { from, to, value, assetId, message }
+      transfer: { from, to, value, assetId, message },
     };
     const block = generateBlock(data);
 
     // 送金者とトークン発行者が同じ場合はキャッシュバックを無視する
     if (asset.from !== from) {
       // キャッシュバック分
-      transferValue({ from: asset.from, to: from, value: cashbackValue, assetId });
+      transferValue({
+        from: asset.from,
+        to: from,
+        value: cashbackValue,
+        assetId,
+      });
 
       const cashbackData = {
-        transfer: { from: asset.from, to: from, value: cashbackValue, assetId }
+        transfer: { from: asset.from, to: from, value: cashbackValue, assetId },
       };
       const cashbackBlock = generateBlock(cashbackData);
 
       res.json([cashbackBlock, block]);
     } else {
-
       res.json(block);
     }
-
   } else {
     transferValue({ from, to, value, assetId });
 
