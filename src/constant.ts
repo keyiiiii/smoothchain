@@ -33,9 +33,9 @@ const STATUS_CODE = {
 
 const RECONNECT_TIME = 3000;
 
-const LEVY_RATE = 0.03;
+const LEVY_RATE = 0.05;
 
-const CASHBACK_RATE = 0.05;
+const CASHBACK_RATE = 0.03;
 
 // tslint:enable:no-magic-numbers
 
