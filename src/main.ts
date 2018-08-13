@@ -73,17 +73,21 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const value = parseInt(req.body.value, 10);
   const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
-  transaction(
-    {
-      from,
-      to,
-      seed,
-      message,
-      assetId,
-      value,
-    },
-    res,
-  );
+  try {
+    const result = transaction(
+      {
+        from,
+        to,
+        seed,
+        message,
+        assetId,
+        value
+      }
+    );
+    res.json(result);
+  } catch (e) {
+    res.status(STATUS_CODE[e.message]).send();
+  }
 });
 
 /**

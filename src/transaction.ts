@@ -1,6 +1,5 @@
 import SHA256 from 'crypto-js/sha256';
-import { Response } from 'express';
-import { CASHBACK_RATE, LEVY_RATE, STATUS_CODE } from './constant';
+import { CASHBACK_RATE, LEVY_RATE } from './constant';
 import { getAsset } from './state/assets';
 import { transferValue } from './state/account';
 import { generateBlock } from './main';
@@ -14,17 +13,17 @@ interface TransactionPayload {
   value: number;
 }
 
-export function transaction(payload: TransactionPayload, res: Response): void {
+
+
+export function transaction(payload: TransactionPayload): Object {
   // 送信元と送信先が一緒なら弾く
   if (payload.from === payload.to) {
-    res.status(STATUS_CODE.BAD_REQUEST).send();
-    return;
+    throw new Error('BAD_REQUEST');
   }
 
   // seed とアドレスが一致しない場合は弾く
   if (SHA256(payload.seed).toString() !== payload.from) {
-    res.status(STATUS_CODE.UNAUTHORIZED).send();
-    return;
+    throw new Error('UNAUTHORIZED');
   }
 
   // transferable じゃない asset は from か to が asset.from に一致する必要がある
@@ -33,8 +32,7 @@ export function transaction(payload: TransactionPayload, res: Response): void {
     !asset.optional.transferable &&
     !(asset.from === payload.from || asset.from === payload.to)
   ) {
-    res.status(STATUS_CODE.METHOD_NOT_ALLOWED).send();
-    return;
+    throw new Error('METHOD_NOT_ALLOWED');
   }
 
   // 送金
@@ -77,7 +75,7 @@ export function transaction(payload: TransactionPayload, res: Response): void {
     };
     const block = generateBlock(data);
 
-    res.json([levyBlock, block]);
+    return [levyBlock, block];
   } else if (asset.optional.cashback) {
     const cashbackValue = Math.floor(payload.value * CASHBACK_RATE);
     // 通常分
@@ -119,9 +117,9 @@ export function transaction(payload: TransactionPayload, res: Response): void {
       };
       const cashbackBlock = generateBlock(cashbackData);
 
-      res.json([cashbackBlock, block]);
+      return [cashbackBlock, block];
     } else {
-      res.json(block);
+      return block;
     }
   } else {
     transferValue({
@@ -140,6 +138,6 @@ export function transaction(payload: TransactionPayload, res: Response): void {
         message: payload.message,
       },
     };
-    res.json(generateBlock(data));
+    return generateBlock(data);
   }
 }
