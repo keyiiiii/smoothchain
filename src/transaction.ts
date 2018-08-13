@@ -13,6 +13,46 @@ interface TransactionPayload {
   value: number;
 }
 
+interface SwapPayload {
+  from: string;
+  to: string;
+  assetId: string;
+  value: number;
+}
+
+interface SwapTransactionPayload {
+  sellTransaction: SwapPayload;
+  buyTransaction: SwapPayload;
+}
+
+// TODO: security validation
+export function swapTransaction(payload: SwapTransactionPayload): Object {
+  const sellTransfer = {
+    from: payload.sellTransaction.from,
+    to: payload.sellTransaction.to,
+    value: payload.sellTransaction.value,
+    assetId: payload.sellTransaction.assetId
+  };
+  transferValue(sellTransfer);
+
+  const sellData = {
+    transfer: { ...sellTransfer, message: '' },
+  };
+
+  const buyTransfer = {
+    from: payload.buyTransaction.from,
+    to: payload.buyTransaction.to,
+    value: payload.buyTransaction.value,
+    assetId: payload.buyTransaction.assetId
+  };
+  transferValue(buyTransfer);
+
+  const buyData = {
+    transfer: { ...buyTransfer, message: '' },
+  };
+  return generateBlock([sellData, buyData]);
+}
+
 export function transaction(payload: TransactionPayload): Object {
   // 送信元と送信先が一緒なら弾く
   if (payload.from === payload.to) {
@@ -20,7 +60,7 @@ export function transaction(payload: TransactionPayload): Object {
   }
 
   // seed とアドレスが一致しない場合は弾く
-  if (SHA256(payload.seed).toString() !== payload.from) {
+  if (SHA256(payload.seed).toString() !== payload.from.replace(/^esc/, '')) {
     throw new Error('UNAUTHORIZED');
   }
 
@@ -34,7 +74,7 @@ export function transaction(payload: TransactionPayload): Object {
   }
 
   // 送金
-  if (asset.optional.levy) {
+  if (asset.optional.levy && !payload.from.startsWith('esc')) {
     const levyValue = Math.floor(payload.value * LEVY_RATE);
     // 徴収分
     transferValue({
@@ -74,7 +114,7 @@ export function transaction(payload: TransactionPayload): Object {
     const block = generateBlock(data);
 
     return [levyBlock, block];
-  } else if (asset.optional.cashback) {
+  } else if (asset.optional.cashback && !payload.from.startsWith('esc')) {
     const cashbackValue = Math.floor(payload.value * CASHBACK_RATE);
     // 通常分
     transferValue({
