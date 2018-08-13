@@ -31,7 +31,7 @@ export function swapTransaction(payload: SwapTransactionPayload): Object {
     from: payload.sellTransaction.from,
     to: payload.sellTransaction.to,
     value: payload.sellTransaction.value,
-    assetId: payload.sellTransaction.assetId
+    assetId: payload.sellTransaction.assetId,
   };
   transferValue(sellTransfer);
 
@@ -43,7 +43,7 @@ export function swapTransaction(payload: SwapTransactionPayload): Object {
     from: payload.buyTransaction.from,
     to: payload.buyTransaction.to,
     value: payload.buyTransaction.value,
-    assetId: payload.buyTransaction.assetId
+    assetId: payload.buyTransaction.assetId,
   };
   transferValue(buyTransfer);
 
