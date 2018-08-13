@@ -24,6 +24,14 @@ import {
 import { putAssets, getAssets, getAsset } from './state/assets';
 import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE } from './constant';
 import { Block } from './types';
+import {
+  getAgreementEscrow,
+  deleteEscrow,
+  getEscrows,
+  putEscrows,
+  getEscrowsFrom,
+} from './state/escrow';
+import { swapTransaction, transaction } from './transaction';
 
 // TODO: move
 export function generateBlock(data: any): Block {
@@ -74,16 +82,14 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
   try {
-    const result = transaction(
-      {
-        from,
-        to,
-        seed,
-        message,
-        assetId,
-        value
-      }
-    );
+    const result = transaction({
+      from,
+      to,
+      seed,
+      message,
+      assetId,
+      value,
+    });
     res.json(result);
   } catch (e) {
     res.status(STATUS_CODE[e.message]).send();
@@ -162,6 +168,85 @@ app.get('/api/balance/:address', (req: Request, res: Response) => {
   res.json({
     balance: getValue(address, assetId),
   });
+});
+
+/**
+ * swap
+ */
+app.get('/api/swap/list', (_, res: Response) => {
+  res.json(getEscrows());
+});
+
+// from に紐付いた Escrows を返す
+app.get('/api/swap/list/:address', (req: Request, res: Response) => {
+  const { address } = req.params;
+  res.json(getEscrowsFrom(address));
+});
+
+// escrow state の取り消し
+app.delete('/api/swap/:escrowId', (req: Request, res: Response) => {
+  const { escrowId } = req.params;
+  const { from, seed } = req.body; // seed とアドレスが一致しない場合は弾く
+  if (SHA256(seed).toString() !== from) {
+    res.status(STATUS_CODE.UNAUTHORIZED).send();
+    return;
+  }
+  res.json(deleteEscrow(escrowId, from));
+});
+
+app.post('/api/swap/order', (req: Request, res: Response) => {
+  const { from, seed } = req.body;
+  const sell = {
+    assetId: req.body.sell.assetId,
+    value: parseInt(req.body.sell.value, 10),
+  };
+  const buy = {
+    assetId: req.body.buy.assetId,
+    value: parseInt(req.body.buy.value, 10),
+  };
+  if (!(sell.assetId && sell.value && buy.assetId && buy.value)) {
+    res.status(STATUS_CODE.BAD_REQUEST).send();
+  }
+
+  let transactionResult: Object;
+  // escrow address に送金
+  try {
+    transactionResult = transaction({
+      from,
+      to: `esc${from}`,
+      seed,
+      message: '',
+      assetId: sell.assetId,
+      value: sell.value,
+    });
+  } catch (e) {
+    res.status(STATUS_CODE[e.message]).send();
+  }
+  // 売りと買いが一致する escrow を探す
+  const agreementEscrows = getAgreementEscrow(sell, buy);
+  // 一致しなかった場合は put する
+  if (!agreementEscrows) {
+    putEscrows({ from, seed, sell, buy });
+    res.json(transactionResult);
+  } else {
+    // escrow が一致した場合 transaction をつくる
+    const swapResult = swapTransaction({
+      sellTransaction: {
+        from: `esc${from}`,
+        to: agreementEscrows.from,
+        assetId: agreementEscrows.buy.assetId,
+        value: agreementEscrows.buy.value,
+      },
+      buyTransaction: {
+        from: `esc${agreementEscrows.from}`,
+        to: from,
+        assetId: agreementEscrows.sell.assetId,
+        value: agreementEscrows.sell.value,
+      },
+    });
+
+    res.json(swapResult);
+  }
 });
 
 /**
