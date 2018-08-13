@@ -22,13 +22,8 @@ import {
   postAccount,
 } from './state/account';
 import { putAssets, getAssets, getAsset } from './state/assets';
-import {
-  CONVERSIONS,
-  NATIVE_TOKEN,
-  STATUS_CODE,
-} from './constant';
+import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE } from './constant';
 import { Block } from './types';
-import { transaction } from "./transaction";
 
 // TODO: move
 export function generateBlock(data: any): Block {
@@ -78,15 +73,17 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const value = parseInt(req.body.value, 10);
   const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
-  transaction({
-    from,
-    to,
-    seed,
-    message,
-    assetId,
-    value,
-  }, res);
-
+  transaction(
+    {
+      from,
+      to,
+      seed,
+      message,
+      assetId,
+      value,
+    },
+    res,
+  );
 });
 
 /**

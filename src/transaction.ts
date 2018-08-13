@@ -1,7 +1,7 @@
 import SHA256 from 'crypto-js/sha256';
-import { Response } from "express";
-import { CASHBACK_RATE, LEVY_RATE, STATUS_CODE } from "./constant";
-import { getAsset } from "./state/assets";
+import { Response } from 'express';
+import { CASHBACK_RATE, LEVY_RATE, STATUS_CODE } from './constant';
+import { getAsset } from './state/assets';
 import { transferValue } from './state/account';
 import { generateBlock } from './main';
 
@@ -15,7 +15,6 @@ interface TransactionPayload {
 }
 
 export function transaction(payload: TransactionPayload, res: Response): void {
-
   // 送信元と送信先が一緒なら弾く
   if (payload.from === payload.to) {
     res.status(STATUS_CODE.BAD_REQUEST).send();
@@ -42,18 +41,39 @@ export function transaction(payload: TransactionPayload, res: Response): void {
   if (asset.optional.levy) {
     const levyValue = Math.floor(payload.value * LEVY_RATE);
     // 徴収分
-    transferValue({ from: payload.from, to: asset.from, value: levyValue, assetId: payload.assetId });
+    transferValue({
+      from: payload.from,
+      to: asset.from,
+      value: levyValue,
+      assetId: payload.assetId,
+    });
 
     const levyData = {
-      transfer: { from: payload.from, to: asset.from, value: levyValue, assetId: payload.assetId }
+      transfer: {
+        from: payload.from,
+        to: asset.from,
+        value: levyValue,
+        assetId: payload.assetId,
+      },
     };
     const levyBlock = generateBlock(levyData);
 
     // 通常分
-    transferValue({ from: payload.from, to: payload.to, value: payload.value - levyValue, assetId: payload.assetId });
+    transferValue({
+      from: payload.from,
+      to: payload.to,
+      value: payload.value - levyValue,
+      assetId: payload.assetId,
+    });
 
     const data = {
-      transfer: { from: payload.from, to: payload.to, value: payload.value - levyValue, assetId: payload.assetId, message: payload.message }
+      transfer: {
+        from: payload.from,
+        to: payload.to,
+        value: payload.value - levyValue,
+        assetId: payload.assetId,
+        message: payload.message,
+      },
     };
     const block = generateBlock(data);
 
@@ -61,10 +81,21 @@ export function transaction(payload: TransactionPayload, res: Response): void {
   } else if (asset.optional.cashback) {
     const cashbackValue = Math.floor(payload.value * CASHBACK_RATE);
     // 通常分
-    transferValue({ from: payload.from, to: payload.to, value: payload.value, assetId: payload.assetId });
+    transferValue({
+      from: payload.from,
+      to: payload.to,
+      value: payload.value,
+      assetId: payload.assetId,
+    });
 
     const data = {
-      transfer: { from: payload.from, to: payload.to, value: payload.value, assetId: payload.assetId, message: payload.message }
+      transfer: {
+        from: payload.from,
+        to: payload.to,
+        value: payload.value,
+        assetId: payload.assetId,
+        message: payload.message,
+      },
     };
     const block = generateBlock(data);
 
@@ -75,11 +106,16 @@ export function transaction(payload: TransactionPayload, res: Response): void {
         from: asset.from,
         to: payload.from,
         value: cashbackValue,
-        assetId: payload.assetId
+        assetId: payload.assetId,
       });
 
       const cashbackData = {
-        transfer: { from: asset.from, to: payload.from, value: cashbackValue, assetId: payload.assetId }
+        transfer: {
+          from: asset.from,
+          to: payload.from,
+          value: cashbackValue,
+          assetId: payload.assetId,
+        },
       };
       const cashbackBlock = generateBlock(cashbackData);
 
@@ -88,10 +124,21 @@ export function transaction(payload: TransactionPayload, res: Response): void {
       res.json(block);
     }
   } else {
-    transferValue({ from: payload.from, to: payload.to, value: payload.value, assetId: payload.assetId });
+    transferValue({
+      from: payload.from,
+      to: payload.to,
+      value: payload.value,
+      assetId: payload.assetId,
+    });
 
     const data = {
-      transfer: { from: payload.from, to: payload.to, value: payload.value, assetId: payload.assetId, message: payload.message }
+      transfer: {
+        from: payload.from,
+        to: payload.to,
+        value: payload.value,
+        assetId: payload.assetId,
+        message: payload.message,
+      },
     };
     res.json(generateBlock(data));
   }
