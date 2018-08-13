@@ -13,8 +13,6 @@ interface TransactionPayload {
   value: number;
 }
 
-
-
 export function transaction(payload: TransactionPayload): Object {
   // 送信元と送信先が一緒なら弾く
   if (payload.from === payload.to) {
