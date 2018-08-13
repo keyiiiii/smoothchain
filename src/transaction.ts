@@ -27,6 +27,18 @@ interface SwapTransactionPayload {
 
 // TODO: security validation
 export function swapTransaction(payload: SwapTransactionPayload): Object {
+  const buyTransfer = {
+    from: payload.buyTransaction.from,
+    to: payload.buyTransaction.to,
+    value: payload.buyTransaction.value,
+    assetId: payload.buyTransaction.assetId,
+  };
+  transferValue(buyTransfer);
+
+  const buyData = {
+    transfer: { ...buyTransfer, message: '' },
+  };
+
   const sellTransfer = {
     from: payload.sellTransaction.from,
     to: payload.sellTransaction.to,
@@ -39,17 +51,6 @@ export function swapTransaction(payload: SwapTransactionPayload): Object {
     transfer: { ...sellTransfer, message: '' },
   };
 
-  const buyTransfer = {
-    from: payload.buyTransaction.from,
-    to: payload.buyTransaction.to,
-    value: payload.buyTransaction.value,
-    assetId: payload.buyTransaction.assetId,
-  };
-  transferValue(buyTransfer);
-
-  const buyData = {
-    transfer: { ...buyTransfer, message: '' },
-  };
   return generateBlock([sellData, buyData]);
 }
 

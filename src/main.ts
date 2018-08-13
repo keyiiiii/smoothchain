@@ -229,23 +229,30 @@ app.post('/api/swap/order', (req: Request, res: Response) => {
     putEscrows({ from, seed, sell, buy });
     res.json(transactionResult);
   } else {
-    // escrow が一致した場合 transaction をつくる
-    const swapResult = swapTransaction({
-      sellTransaction: {
-        from: `esc${from}`,
-        to: agreementEscrows.from,
-        assetId: agreementEscrows.buy.assetId,
-        value: agreementEscrows.buy.value,
-      },
-      buyTransaction: {
-        from: `esc${agreementEscrows.from}`,
-        to: from,
-        assetId: agreementEscrows.sell.assetId,
-        value: agreementEscrows.sell.value,
-      },
-    });
+    try {
+      // escrow が一致した場合 transaction をつくる
+      const swapResult = swapTransaction({
+        sellTransaction: {
+          from: `esc${from}`,
+          to: agreementEscrows.from,
+          assetId: agreementEscrows.buy.assetId,
+          value: agreementEscrows.buy.value,
+        },
+        buyTransaction: {
+          from: `esc${agreementEscrows.from}`,
+          to: from,
+          assetId: agreementEscrows.sell.assetId,
+          value: agreementEscrows.sell.value,
+        },
+      });
 
-    res.json(swapResult);
+      deleteEscrow(agreementEscrows.escrowId, agreementEscrows.from);
+
+      res.json(swapResult);
+    } catch (e) {
+      // swap 失敗したときは transactionResult だけ返す
+      res.json(transactionResult);
+    }
   }
 });
 
