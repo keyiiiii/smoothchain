@@ -16,7 +16,6 @@ import {
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
 import {
-  transferValue,
   getValue,
   getAccounts,
   getAccountAssets,
@@ -27,12 +26,12 @@ import {
   CONVERSIONS,
   NATIVE_TOKEN,
   STATUS_CODE,
-  LEVY_RATE,
-  CASHBACK_RATE,
 } from './constant';
 import { Block } from './types';
+import { transaction } from "./transaction";
 
-function generateBlock(data: any): Block {
+// TODO: move
+export function generateBlock(data: any): Block {
   const next = generateNextBlock(getBlockchain(), data);
   addBlock(getBlockchain(), next);
   const newBlockchain = getBlockchain();
@@ -79,85 +78,15 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const value = parseInt(req.body.value, 10);
   const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
-  // 送信元と送信先が一緒なら弾く
-  if (from === to) {
-    res.status(STATUS_CODE.BAD_REQUEST).send();
-    return;
-  }
+  transaction({
+    from,
+    to,
+    seed,
+    message,
+    assetId,
+    value,
+  }, res);
 
-  // seed とアドレスが一致しない場合は弾く
-  if (SHA256(seed).toString() !== from) {
-    res.status(STATUS_CODE.UNAUTHORIZED).send();
-    return;
-  }
-
-  // transferable じゃない asset は from か to が asset.from に一致する必要がある
-  const asset = getAsset(assetId);
-  if (
-    !asset.optional.transferable &&
-    !(asset.from === from || asset.from === to)
-  ) {
-    res.status(STATUS_CODE.METHOD_NOT_ALLOWED).send();
-    return;
-  }
-
-  // 送金
-  if (asset.optional.levy) {
-    const levyValue = Math.floor(value * LEVY_RATE);
-    // 徴収分
-    transferValue({ from, to: asset.from, value: levyValue, assetId });
-
-    const levyData = {
-      transfer: { from, to: asset.from, value: levyValue, assetId },
-    };
-    const levyBlock = generateBlock(levyData);
-
-    // 通常分
-    transferValue({ from, to, value: value - levyValue, assetId });
-
-    const data = {
-      transfer: { from, to, value: value - levyValue, assetId, message },
-    };
-    const block = generateBlock(data);
-
-    res.json([levyBlock, block]);
-  } else if (asset.optional.cashback) {
-    const cashbackValue = Math.floor(value * CASHBACK_RATE);
-    // 通常分
-    transferValue({ from, to, value, assetId });
-
-    const data = {
-      transfer: { from, to, value, assetId, message },
-    };
-    const block = generateBlock(data);
-
-    // 送金者とトークン発行者が同じ場合はキャッシュバックを無視する
-    if (asset.from !== from) {
-      // キャッシュバック分
-      transferValue({
-        from: asset.from,
-        to: from,
-        value: cashbackValue,
-        assetId,
-      });
-
-      const cashbackData = {
-        transfer: { from: asset.from, to: from, value: cashbackValue, assetId },
-      };
-      const cashbackBlock = generateBlock(cashbackData);
-
-      res.json([cashbackBlock, block]);
-    } else {
-      res.json(block);
-    }
-  } else {
-    transferValue({ from, to, value, assetId });
-
-    const data = {
-      transfer: { from, to, value, assetId, message },
-    };
-    res.json(generateBlock(data));
-  }
 });
 
 /**
