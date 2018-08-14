@@ -183,17 +183,6 @@ app.get('/api/swap/list/:address', (req: Request, res: Response) => {
   res.json(getEscrowsFrom(address));
 });
 
-// escrow state の取り消し
-app.delete('/api/swap/:escrowId', (req: Request, res: Response) => {
-  const { escrowId } = req.params;
-  const { from, seed } = req.body; // seed とアドレスが一致しない場合は弾く
-  if (SHA256(seed).toString() !== from) {
-    res.status(STATUS_CODE.UNAUTHORIZED).send();
-    return;
-  }
-  res.json(deleteEscrow(escrowId, from));
-});
-
 app.post('/api/swap/order', (req: Request, res: Response) => {
   const { from, seed } = req.body;
   const sell = {
@@ -259,6 +248,18 @@ app.post('/api/swap/order', (req: Request, res: Response) => {
       res.json(transactionResult);
     }
   }
+});
+
+// escrow state の取り消し
+// TODO: delete にしたい。 seed を header に入れたい
+app.post('/api/swap/:escrowId', (req: Request, res: Response) => {
+  const { escrowId } = req.params;
+  const { from, seed } = req.body; // seed とアドレスが一致しない場合は弾く
+  if (SHA256(seed).toString() !== from) {
+    res.status(STATUS_CODE.UNAUTHORIZED).send();
+    return;
+  }
+  res.json(deleteEscrow(escrowId, from));
 });
 
 /**
