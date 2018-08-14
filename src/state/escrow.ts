@@ -68,7 +68,7 @@ export function getAgreementEscrow(sell: Asset, buy: Asset): Escrow {
 }
 
 // escrow を追加する
-export function putEscrows(escrowPayload: EscrowPayload): Escrow[] {
+export function putEscrows(escrowPayload: EscrowPayload): void {
   const timestamp = getCurrentTimestamp();
   const escrowId = SHA256(
     escrowPayload.from +
@@ -84,5 +84,4 @@ export function putEscrows(escrowPayload: EscrowPayload): Escrow[] {
     buy: escrowPayload.buy,
     timestamp,
   });
-  return getEscrows();
 }
