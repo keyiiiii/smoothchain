@@ -225,7 +225,11 @@ app.post('/api/swap/order', (req: Request, res: Response) => {
   // 売りと買いが一致する escrow を探す
   const agreementEscrows = getAgreementEscrow(sell, buy);
   // 一致しなかった場合は put する
-  if (!agreementEscrows) {
+  if (
+    !agreementEscrows ||
+    (agreementEscrows.sell.value < buy.value &&
+      agreementEscrows.buy.value > sell.value)
+  ) {
     putEscrows({ from, seed, sell, buy });
     res.json(transactionResult);
   } else {
@@ -250,6 +254,7 @@ app.post('/api/swap/order', (req: Request, res: Response) => {
 
       res.json(swapResult);
     } catch (e) {
+      putEscrows({ from, seed, sell, buy });
       // swap 失敗したときは transactionResult だけ返す
       res.json(transactionResult);
     }
