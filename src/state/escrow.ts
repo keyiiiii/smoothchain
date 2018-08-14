@@ -46,6 +46,13 @@ export function getEscrowsFrom(from: string): Escrow[] {
   });
 }
 
+// escrowId に一致する escrow を返す
+export function getEscrowEscrowId(escrowId: string): Escrow {
+  return getEscrows().find((escrow: Escrow) => {
+    return escrow.escrowId === escrowId;
+  });
+}
+
 // escrow を取り消す
 export function deleteEscrow(escrowId: string, from: string): Escrow[] {
   const esc = [];

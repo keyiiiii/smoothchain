@@ -30,6 +30,7 @@ import {
   getEscrows,
   putEscrows,
   getEscrowsFrom,
+  getEscrowEscrowId,
 } from './state/escrow';
 import { swapTransaction, transaction } from './transaction';
 
@@ -259,6 +260,16 @@ app.post('/api/swap/:escrowId', (req: Request, res: Response) => {
     res.status(STATUS_CODE.UNAUTHORIZED).send();
     return;
   }
+  // escrow state から from に asset を戻す
+  const exsistEscrow = getEscrowEscrowId(escrowId);
+  transaction({
+    from: `esc${from}`,
+    to: from,
+    seed,
+    message: '',
+    assetId: exsistEscrow.sell.assetId,
+    value: exsistEscrow.sell.value,
+  });
   res.json(deleteEscrow(escrowId, from));
 });
 
