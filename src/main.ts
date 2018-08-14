@@ -16,23 +16,26 @@ import {
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
 import {
-  transferValue,
   getValue,
   getAccounts,
   getAccountAssets,
   postAccount,
 } from './state/account';
 import { putAssets, getAssets, getAsset } from './state/assets';
-import {
-  CONVERSIONS,
-  NATIVE_TOKEN,
-  STATUS_CODE,
-  LEVY_RATE,
-  CASHBACK_RATE,
-} from './constant';
+import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE } from './constant';
 import { Block } from './types';
+import {
+  getAgreementEscrow,
+  deleteEscrow,
+  getEscrows,
+  putEscrows,
+  getEscrowsFrom,
+  getEscrowEscrowId,
+} from './state/escrow';
+import { swapTransaction, transaction } from './transaction';
 
-function generateBlock(data: any): Block {
+// TODO: move
+export function generateBlock(data: any): Block {
   const next = generateNextBlock(getBlockchain(), data);
   addBlock(getBlockchain(), next);
   const newBlockchain = getBlockchain();
@@ -79,84 +82,18 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const value = parseInt(req.body.value, 10);
   const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
-  // 送信元と送信先が一緒なら弾く
-  if (from === to) {
-    res.status(STATUS_CODE.BAD_REQUEST).send();
-    return;
-  }
-
-  // seed とアドレスが一致しない場合は弾く
-  if (SHA256(seed).toString() !== from) {
-    res.status(STATUS_CODE.UNAUTHORIZED).send();
-    return;
-  }
-
-  // transferable じゃない asset は from か to が asset.from に一致する必要がある
-  const asset = getAsset(assetId);
-  if (
-    !asset.optional.transferable &&
-    !(asset.from === from || asset.from === to)
-  ) {
-    res.status(STATUS_CODE.METHOD_NOT_ALLOWED).send();
-    return;
-  }
-
-  // 送金
-  if (asset.optional.levy) {
-    const levyValue = Math.floor(value * LEVY_RATE);
-    // 徴収分
-    transferValue({ from, to: asset.from, value: levyValue, assetId });
-
-    const levyData = {
-      transfer: { from, to: asset.from, value: levyValue, assetId },
-    };
-    const levyBlock = generateBlock(levyData);
-
-    // 通常分
-    transferValue({ from, to, value: value - levyValue, assetId });
-
-    const data = {
-      transfer: { from, to, value: value - levyValue, assetId, message },
-    };
-    const block = generateBlock(data);
-
-    res.json([levyBlock, block]);
-  } else if (asset.optional.cashback) {
-    const cashbackValue = Math.floor(value * CASHBACK_RATE);
-    // 通常分
-    transferValue({ from, to, value, assetId });
-
-    const data = {
-      transfer: { from, to, value, assetId, message },
-    };
-    const block = generateBlock(data);
-
-    // 送金者とトークン発行者が同じ場合はキャッシュバックを無視する
-    if (asset.from !== from) {
-      // キャッシュバック分
-      transferValue({
-        from: asset.from,
-        to: from,
-        value: cashbackValue,
-        assetId,
-      });
-
-      const cashbackData = {
-        transfer: { from: asset.from, to: from, value: cashbackValue, assetId },
-      };
-      const cashbackBlock = generateBlock(cashbackData);
-
-      res.json([cashbackBlock, block]);
-    } else {
-      res.json(block);
-    }
-  } else {
-    transferValue({ from, to, value, assetId });
-
-    const data = {
-      transfer: { from, to, value, assetId, message },
-    };
-    res.json(generateBlock(data));
+  try {
+    const result = transaction({
+      from,
+      to,
+      seed,
+      message,
+      assetId,
+      value,
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(STATUS_CODE[e.message]).send();
   }
 });
 
@@ -232,6 +169,108 @@ app.get('/api/balance/:address', (req: Request, res: Response) => {
   res.json({
     balance: getValue(address, assetId),
   });
+});
+
+/**
+ * swap
+ */
+app.get('/api/swap/list', (_, res: Response) => {
+  res.json(getEscrows());
+});
+
+// from に紐付いた Escrows を返す
+app.get('/api/swap/list/:address', (req: Request, res: Response) => {
+  const { address } = req.params;
+  res.json(getEscrowsFrom(address));
+});
+
+app.post('/api/swap/order', (req: Request, res: Response) => {
+  const { from, seed } = req.body;
+  const sell = {
+    assetId: req.body.sell.assetId,
+    value: parseInt(req.body.sell.value, 10),
+  };
+  const buy = {
+    assetId: req.body.buy.assetId,
+    value: parseInt(req.body.buy.value, 10),
+  };
+  if (!(sell.assetId && sell.value && buy.assetId && buy.value)) {
+    res.status(STATUS_CODE.BAD_REQUEST).send();
+  }
+
+  let transactionResult: Object;
+  // escrow address に送金
+  try {
+    transactionResult = transaction({
+      from,
+      to: `esc${from}`,
+      seed,
+      message: '',
+      assetId: sell.assetId,
+      value: sell.value,
+    });
+  } catch (e) {
+    res.status(STATUS_CODE[e.message]).send();
+  }
+  // 売りと買いが一致する escrow を探す
+  const agreementEscrows = getAgreementEscrow(sell, buy);
+  // 一致しなかった場合は put する
+  if (
+    !agreementEscrows ||
+    (agreementEscrows.sell.value < buy.value &&
+      agreementEscrows.buy.value > sell.value)
+  ) {
+    putEscrows({ from, seed, sell, buy });
+    res.json(transactionResult);
+  } else {
+    try {
+      // escrow が一致した場合 transaction をつくる
+      const swapResult = swapTransaction({
+        sellTransaction: {
+          from: `esc${from}`,
+          to: agreementEscrows.from,
+          assetId: agreementEscrows.buy.assetId,
+          value: agreementEscrows.buy.value,
+        },
+        buyTransaction: {
+          from: `esc${agreementEscrows.from}`,
+          to: from,
+          assetId: agreementEscrows.sell.assetId,
+          value: agreementEscrows.sell.value,
+        },
+      });
+
+      deleteEscrow(agreementEscrows.escrowId, agreementEscrows.from);
+
+      res.json(swapResult);
+    } catch (e) {
+      putEscrows({ from, seed, sell, buy });
+      // swap 失敗したときは transactionResult だけ返す
+      res.json(transactionResult);
+    }
+  }
+});
+
+// escrow state の取り消し
+// TODO: delete にしたい。 seed を header に入れたい
+app.post('/api/swap/:escrowId', (req: Request, res: Response) => {
+  const { escrowId } = req.params;
+  const { from, seed } = req.body; // seed とアドレスが一致しない場合は弾く
+  if (SHA256(seed).toString() !== from) {
+    res.status(STATUS_CODE.UNAUTHORIZED).send();
+    return;
+  }
+  // escrow state から from に asset を戻す
+  const exsistEscrow = getEscrowEscrowId(escrowId);
+  transaction({
+    from: `esc${from}`,
+    to: from,
+    seed,
+    message: '',
+    assetId: exsistEscrow.sell.assetId,
+    value: exsistEscrow.sell.value,
+  });
+  res.json(deleteEscrow(escrowId, from));
 });
 
 /**

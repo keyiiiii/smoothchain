@@ -23,4 +23,5 @@ export interface PeerMessage {
   data: string;
   accounts: string;
   assets: string;
+  escrow: string;
 }

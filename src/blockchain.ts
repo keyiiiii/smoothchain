@@ -3,6 +3,7 @@ import { CONVERSIONS, MINING } from './constant';
 import { Block, Blockchain, Transfer } from './types';
 import { getGenesisBlock } from './history';
 import hexToBinary from 'hex-to-binary';
+import { getCurrentTimestamp } from './utils/date';
 
 export function getLatestBlock(blockchain: Blockchain): Block {
   return blockchain[blockchain.length - 1];
@@ -48,10 +49,6 @@ function getAdjustedDifficulty(
   } else {
     return prevAdjustmentBlock.difficulty;
   }
-}
-
-function getCurrentTimestamp(): number {
-  return Math.round(new Date().getTime() / CONVERSIONS.sec);
 }
 
 export function calculateHash(

@@ -12,6 +12,7 @@ import { Block, Blockchain, PeerMessage } from './types';
 import { getAccounts, replaceAccounts } from './state/account';
 import { getAssets, replaceAssets } from './state/assets';
 import { getBlockchain } from './history';
+import { getEscrows, replaceEscrows } from './state/escrow';
 
 const sockets = [];
 let reconnectTimeout;
@@ -22,6 +23,7 @@ function responseChainMsg(blockchain: Blockchain): PeerMessage {
     data: JSON.stringify(blockchain),
     accounts: JSON.stringify(getAccounts()),
     assets: JSON.stringify(getAssets()),
+    escrow: JSON.stringify(getEscrows()),
   };
 }
 
@@ -31,6 +33,7 @@ export function responseLatestMsg(blockchain: Blockchain): PeerMessage {
     data: JSON.stringify([getLatestBlock(blockchain)]),
     accounts: JSON.stringify(getAccounts()),
     assets: JSON.stringify(getAssets()),
+    escrow: JSON.stringify(getEscrows()),
   };
 }
 
@@ -40,6 +43,7 @@ function queryAllMsg(): PeerMessage {
     data: '',
     accounts: '',
     assets: '',
+    escrow: '',
   };
 }
 
@@ -49,6 +53,7 @@ function queryChainLengthMsg(): PeerMessage {
     data: '',
     accounts: '',
     assets: '',
+    escrow: '',
   };
 }
 
@@ -72,6 +77,11 @@ function handleReplaceAccounts(accountMessage: string) {
   Object.keys(newAssetsAccount).forEach((assetId: string) => {
     replaceAccounts(newAssetsAccount[assetId], assetId);
   });
+}
+
+function handleReplaceEscrow(escrowMessage: string) {
+  const newEscrows = JSON.parse(escrowMessage);
+  replaceEscrows(newEscrows);
 }
 
 function handleReplaceAssets(assetMessage: string) {
@@ -113,6 +123,7 @@ function handleBlockchainResponse(
 
         handleReplaceAccounts(message.accounts);
         handleReplaceAssets(message.assets);
+        handleReplaceEscrow(message.escrow);
       }
     } else if (receivedBlocks.length === 1) {
       console.log('We have to query the chain from our peer');
@@ -120,6 +131,7 @@ function handleBlockchainResponse(
 
       handleReplaceAccounts(message.accounts);
       handleReplaceAssets(message.assets);
+      handleReplaceEscrow(message.escrow);
     } else {
       console.log('Received blockchain is longer than current blockchain');
       replaceChain(receivedBlocks, blockchain);
