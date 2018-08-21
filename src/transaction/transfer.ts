@@ -33,7 +33,7 @@ interface OwnerPayload {
 }
 
 // TODO: security validation
-export function swapTransaction(payload: SwapTransactionPayload): Object {
+export function swapTransfer(payload: SwapTransactionPayload): Object {
   const buyTransfer = {
     from: payload.buyTransaction.from,
     to: payload.buyTransaction.to,

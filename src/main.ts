@@ -15,14 +15,9 @@ import {
 } from './network';
 import { httpPort, initialPeers } from './config';
 import { getBlockchain } from './history';
-import {
-  getValue,
-  getAccounts,
-  getAccountAssets,
-  postAccount,
-} from './state/account';
-import { putAssets, getAssets, getAsset } from './state/assets';
-import { CONVERSIONS, NATIVE_TOKEN, STATUS_CODE } from './constant';
+import { getValue, getAccounts, getAccountAssets } from './state/account';
+import { getAssets, getAsset } from './state/assets';
+import { NATIVE_TOKEN, STATUS_CODE } from './constant';
 import { Block } from './types';
 import {
   getAgreementEscrow,
@@ -32,7 +27,8 @@ import {
   getEscrowsFrom,
   getEscrowEscrowId,
 } from './state/escrow';
-import { swapTransaction, transfer } from './transaction/transfer';
+import { swapTransfer, transfer } from './transaction/transfer';
+import { assetsIssue } from './transaction/asset';
 
 // TODO: move
 export function generateBlock(data: any): Block {
@@ -134,22 +130,20 @@ app.post('/api/assets/issue', (req: Request, res: Response) => {
   const total = parseInt(req.body.total, 10) || 0;
   const decimals = parseInt(req.body.decimals, 10) || 0;
 
-  // seed とアドレスが一致しない場合は弾く
-  if (SHA256(seed).toString() !== from) {
-    res.status(STATUS_CODE.UNAUTHORIZED).send();
-    return;
+  try {
+    const result = assetsIssue({
+      from,
+      seed,
+      name,
+      description,
+      optional,
+      total,
+      decimals,
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(STATUS_CODE[e.message]).send();
   }
-
-  const timestamp = ~~(Date.now() / CONVERSIONS.sec);
-  const id = SHA256(seed + name + timestamp).toString();
-
-  putAssets({ from, id, name, description, total, decimals, optional });
-  postAccount({ address: from, value: total }, id);
-
-  const data = {
-    assets: { id, from, name, description, total, decimals, optional },
-  };
-  res.json(generateBlock(data));
 });
 
 /**
@@ -254,7 +248,7 @@ app.post('/api/swap/order', (req: Request, res: Response) => {
   } else {
     try {
       // escrow が一致した場合 transaction をつくる
-      const swapResult = swapTransaction({
+      const swapResult = swapTransfer({
         sellTransaction: {
           from: `esc${from}`,
           to: agreementEscrows.from,

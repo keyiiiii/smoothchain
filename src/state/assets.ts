@@ -4,7 +4,7 @@
 
 import { NATIVE_TOKEN } from '../constant';
 
-interface Optional {
+export interface Optional {
   transferable?: boolean;
   levy?: boolean;
   cashback?: boolean;
