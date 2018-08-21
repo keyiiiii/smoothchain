@@ -100,7 +100,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
 app.post('/api/transaction/revert', (req: Request, res: Response) => {
   const { owner, index } = req.body;
   const targetBlock = getBlockchain().find(
-    (block: Block) => block.index === index,
+    (block: Block) => block.index === parseInt(index, 10),
   );
 
   try {
