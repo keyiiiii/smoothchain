@@ -9,42 +9,62 @@ export function levyTransfer(
   asset: Asset,
 ): Object {
   const value = Math.floor(payload.value * LEVY_RATE);
-  // 徴収分
-  transferValue({
-    from: payload.from,
-    to: asset.from,
-    value,
-    assetId: payload.assetId,
-  });
-
-  const levyData = {
-    transfer: {
-      from: payload.from,
-      to: asset.from,
-      value,
-      assetId: payload.assetId,
-    },
-  };
-  const levyBlock = generateBlock(levyData);
-
-  // 通常分
-  transferValue({
-    from: payload.from,
-    to: payload.to,
-    value: payload.value - value,
-    assetId: payload.assetId,
-  });
-
-  const data = {
-    transfer: {
+  // 送金者とトークン発行者が同じ場合は徴収を無視する
+  if (asset.from !== payload.from) {
+    // 通常分
+    transferValue({
       from: payload.from,
       to: payload.to,
       value: payload.value - value,
       assetId: payload.assetId,
-      message: payload.message,
-    },
-  };
-  const block = generateBlock(data);
+    });
 
-  return [levyBlock, block];
+    const data = {
+      transfer: {
+        from: payload.from,
+        to: payload.to,
+        value: payload.value - value,
+        assetId: payload.assetId,
+        message: payload.message,
+      },
+    };
+    const block = generateBlock(data);
+    // 徴収分
+    transferValue({
+      from: payload.from,
+      to: asset.from,
+      value,
+      assetId: payload.assetId,
+    });
+
+    const levyData = {
+      transfer: {
+        from: payload.from,
+        to: asset.from,
+        value,
+        assetId: payload.assetId,
+      },
+    };
+    const levyBlock = generateBlock(levyData);
+
+    return [block, levyBlock];
+  } else {
+    transferValue({
+      from: payload.from,
+      to: payload.to,
+      value: payload.value,
+      assetId: payload.assetId,
+    });
+
+    const data = {
+      transfer: {
+        from: payload.from,
+        to: payload.to,
+        value: payload.value,
+        assetId: payload.assetId,
+        message: payload.message,
+      },
+    };
+    return generateBlock(data);
+  }
 }
