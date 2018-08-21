@@ -78,7 +78,7 @@ export function transfer(
     owner &&
     owner.address === NATIVE_TOKEN.FROM &&
     SHA256(owner.seed).toString() === owner.address;
-  if (!(isAuthorize || (owner && isOwner))) {
+  if (!(isAuthorize || isOwner)) {
     throw new Error('UNAUTHORIZED');
   }
 
@@ -91,11 +91,13 @@ export function transfer(
     throw new Error('METHOD_NOT_ALLOWED');
   }
 
+  const isInvalidOption = payload.from.startsWith('esc') || isOwner;
+
   // 送金
-  if (asset.optional.levy && !payload.from.startsWith('esc')) {
+  if (asset.optional.levy && !isInvalidOption) {
     // levy
     return levyTransfer(payload, asset);
-  } else if (asset.optional.cashback && !payload.from.startsWith('esc')) {
+  } else if (asset.optional.cashback && !isInvalidOption) {
     // cashback
     return cashbackTransfer(payload, asset);
   } else {
