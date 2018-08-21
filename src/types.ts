@@ -1,3 +1,5 @@
+import { Asset } from './state/assets';
+
 export interface Transfer {
   from: string;
   to: string;
@@ -6,11 +8,16 @@ export interface Transfer {
   message: string;
 }
 
+export interface BlockData {
+  transfer?: Transfer;
+  assets?: Asset;
+}
+
 export interface Block {
   index: number;
   previousHash: string;
   timestamp: number;
-  data: Transfer | {};
+  data: BlockData;
   hash: string;
   nonce: number;
   difficulty: number;

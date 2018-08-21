@@ -1,5 +1,5 @@
 import SHA256 from 'crypto-js/sha256';
-import { CASHBACK_RATE, LEVY_RATE } from './constant';
+import { CASHBACK_RATE, LEVY_RATE, NATIVE_TOKEN } from './constant';
 import { getAsset } from './state/assets';
 import { transferValue } from './state/account';
 import { generateBlock } from './main';
@@ -23,6 +23,11 @@ interface SwapPayload {
 interface SwapTransactionPayload {
   sellTransaction: SwapPayload;
   buyTransaction: SwapPayload;
+}
+
+interface OwnerPayload {
+  address: string;
+  seed: string;
 }
 
 // TODO: security validation
@@ -54,14 +59,24 @@ export function swapTransaction(payload: SwapTransactionPayload): Object {
   return generateBlock([sellData, buyData]);
 }
 
-export function transaction(payload: TransactionPayload): Object {
+export function transaction(
+  payload: TransactionPayload,
+  owner?: OwnerPayload,
+): Object {
   // 送信元と送信先が一緒なら弾く
   if (payload.from === payload.to) {
     throw new Error('BAD_REQUEST');
   }
 
   // seed とアドレスが一致しない場合は弾く
-  if (SHA256(payload.seed).toString() !== payload.from.replace(/^esc/, '')) {
+  // もしくは owner 権限持ってない場合は弾く ※owner は revert のみ有効
+  const isAuthorize =
+    SHA256(payload.seed).toString() === payload.from.replace(/^esc/, '');
+  const isOwner =
+    owner &&
+    owner.address === NATIVE_TOKEN.FROM &&
+    SHA256(owner.seed).toString() === owner.address;
+  if (!(isAuthorize || (owner && isOwner))) {
     throw new Error('UNAUTHORIZED');
   }
 

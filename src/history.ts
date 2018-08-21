@@ -1,10 +1,10 @@
-import { Block, Blockchain, Transfer } from './types';
+import { Block, Blockchain, BlockData } from './types';
 
 function createBlock(
   index: number,
   previousHash: string,
   timestamp: number,
-  data: Transfer | {},
+  data: BlockData,
   hash: string,
   nonce: number,
   difficulty: number,

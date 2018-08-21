@@ -1,6 +1,6 @@
 import SHA256 from 'crypto-js/sha256';
 import { CONVERSIONS, MINING } from './constant';
-import { Block, Blockchain, Transfer } from './types';
+import { Block, Blockchain, BlockData, Transfer } from './types';
 import { getGenesisBlock } from './history';
 import hexToBinary from 'hex-to-binary';
 import { getCurrentTimestamp } from './utils/date';
@@ -74,7 +74,7 @@ function findBlock(
   index: number,
   previousHash: string,
   timestamp: number,
-  data: Transfer | {},
+  data: BlockData,
   difficulty: number,
 ): Block {
   let nonce = 0;
@@ -104,7 +104,7 @@ function findBlock(
 
 export function generateNextBlock(
   blockchain: Blockchain,
-  blockData: Transfer | {},
+  blockData: BlockData,
 ): Block {
   const previousBlock = getLatestBlock(blockchain);
   const difficulty = getDifficulty(blockchain);

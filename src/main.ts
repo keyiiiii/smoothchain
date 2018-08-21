@@ -97,6 +97,35 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   }
 });
 
+app.post('/api/transaction/revert', (req: Request, res: Response) => {
+  const { owner, index } = req.body;
+  const targetBlock = getBlockchain().find(
+    (block: Block) => block.index === index,
+  );
+
+  try {
+    const {
+      data: {
+        transfer: { from, to, message, assetId, value },
+      },
+    } = targetBlock;
+    const result = transaction(
+      {
+        from: to,
+        to: from,
+        seed: '',
+        message,
+        assetId,
+        value,
+      },
+      owner,
+    );
+    res.json(result);
+  } catch (e) {
+    res.status(STATUS_CODE[e.message]).send();
+  }
+});
+
 /**
  * token作成
  */

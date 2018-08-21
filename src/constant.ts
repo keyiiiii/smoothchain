@@ -18,6 +18,7 @@ const MINING = {
 };
 
 const NATIVE_TOKEN = {
+  FROM: 'd10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306',
   ID: '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f',
   NAME: 'native token',
   DESCRIPTION: 'native token',

@@ -26,8 +26,7 @@ interface PutAccountPayload {
 const accounts: AssetsAccount = {
   [NATIVE_TOKEN.ID]: [
     {
-      address:
-        'd10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306',
+      address: NATIVE_TOKEN.FROM,
       value: NATIVE_TOKEN.TOTAL,
     },
   ],
