@@ -32,7 +32,7 @@ import {
   getEscrowsFrom,
   getEscrowEscrowId,
 } from './state/escrow';
-import { swapTransaction, transaction } from './transaction';
+import { swapTransaction, transfer } from './transaction/transfer';
 
 // TODO: move
 export function generateBlock(data: any): Block {
@@ -83,7 +83,7 @@ app.post('/api/transaction', (req: Request, res: Response) => {
   const assetId = req.body.assetId || NATIVE_TOKEN.ID;
 
   try {
-    const result = transaction({
+    const result = transfer({
       from,
       to,
       seed,
@@ -109,7 +109,7 @@ app.post('/api/transaction/revert', (req: Request, res: Response) => {
         transfer: { from, to, message, assetId, value },
       },
     } = targetBlock;
-    const result = transaction(
+    const result = transfer(
       {
         from: to,
         to: from,
@@ -230,7 +230,7 @@ app.post('/api/swap/order', (req: Request, res: Response) => {
   let transactionResult: Object;
   // escrow address に送金
   try {
-    transactionResult = transaction({
+    transactionResult = transfer({
       from,
       to: `esc${from}`,
       seed,
@@ -291,7 +291,7 @@ app.post('/api/swap/:escrowId', (req: Request, res: Response) => {
   }
   // escrow state から from に asset を戻す
   const exsistEscrow = getEscrowEscrowId(escrowId);
-  transaction({
+  transfer({
     from: `esc${from}`,
     to: from,
     seed,

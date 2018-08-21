@@ -1,10 +1,12 @@
 import SHA256 from 'crypto-js/sha256';
-import { CASHBACK_RATE, LEVY_RATE, NATIVE_TOKEN } from './constant';
-import { getAsset } from './state/assets';
-import { transferValue } from './state/account';
-import { generateBlock } from './main';
+import { NATIVE_TOKEN } from '../constant';
+import { getAsset } from '../state/assets';
+import { transferValue } from '../state/account';
+import { generateBlock } from '../main';
+import { levyTransfer } from './levy';
+import { cashbackTransfer } from './cashback';
 
-interface TransactionPayload {
+export interface TransactionPayload {
   from: string;
   to: string;
   seed: string;
@@ -59,7 +61,7 @@ export function swapTransaction(payload: SwapTransactionPayload): Object {
   return generateBlock([sellData, buyData]);
 }
 
-export function transaction(
+export function transfer(
   payload: TransactionPayload,
   owner?: OwnerPayload,
 ): Object {
@@ -91,90 +93,11 @@ export function transaction(
 
   // 送金
   if (asset.optional.levy && !payload.from.startsWith('esc')) {
-    const levyValue = Math.floor(payload.value * LEVY_RATE);
-    // 徴収分
-    transferValue({
-      from: payload.from,
-      to: asset.from,
-      value: levyValue,
-      assetId: payload.assetId,
-    });
-
-    const levyData = {
-      transfer: {
-        from: payload.from,
-        to: asset.from,
-        value: levyValue,
-        assetId: payload.assetId,
-      },
-    };
-    const levyBlock = generateBlock(levyData);
-
-    // 通常分
-    transferValue({
-      from: payload.from,
-      to: payload.to,
-      value: payload.value - levyValue,
-      assetId: payload.assetId,
-    });
-
-    const data = {
-      transfer: {
-        from: payload.from,
-        to: payload.to,
-        value: payload.value - levyValue,
-        assetId: payload.assetId,
-        message: payload.message,
-      },
-    };
-    const block = generateBlock(data);
-
-    return [levyBlock, block];
+    // levy
+    return levyTransfer(payload, asset);
   } else if (asset.optional.cashback && !payload.from.startsWith('esc')) {
-    const cashbackValue = Math.floor(payload.value * CASHBACK_RATE);
-    // 通常分
-    transferValue({
-      from: payload.from,
-      to: payload.to,
-      value: payload.value,
-      assetId: payload.assetId,
-    });
-
-    const data = {
-      transfer: {
-        from: payload.from,
-        to: payload.to,
-        value: payload.value,
-        assetId: payload.assetId,
-        message: payload.message,
-      },
-    };
-    const block = generateBlock(data);
-
-    // 送金者とトークン発行者が同じ場合はキャッシュバックを無視する
-    if (asset.from !== payload.from) {
-      // キャッシュバック分
-      transferValue({
-        from: asset.from,
-        to: payload.from,
-        value: cashbackValue,
-        assetId: payload.assetId,
-      });
-
-      const cashbackData = {
-        transfer: {
-          from: asset.from,
-          to: payload.from,
-          value: cashbackValue,
-          assetId: payload.assetId,
-        },
-      };
-      const cashbackBlock = generateBlock(cashbackData);
-
-      return [cashbackBlock, block];
-    } else {
-      return block;
-    }
+    // cashback
+    return cashbackTransfer(payload, asset);
   } else {
     transferValue({
       from: payload.from,
