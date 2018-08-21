@@ -7,6 +7,7 @@ npm-debug.log
 yarn-error.log
 node_modules/
 build/
+coverage/
 
 # Intellij project files
 .idea

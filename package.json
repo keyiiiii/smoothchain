@@ -12,11 +12,33 @@
     "tscheck": "tsc --project ./tsconfig.json --noEmit",
     "tslint": "tslint --config ./tslint.json './src/**/*.ts'",
     "precommit": "lint-staged",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "coverage": "jest && codecov",
+    "test": "jest",
+    "test:dev": "jest --watch"
   },
   "lint-staged": {
     "*.ts": [
       "tslint --config ./tslint.json './src/**/*.ts' --fix"
+    ]
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "./build/",
+      "./node_modules/",
+      "./coverage/"
+    ],
+    "transform": {
+      "^.+\\.(t|j)s$": "babel-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(js|ts)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "coverageDirectory": "./coverage/",
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.ts"
     ]
   },
   "author": "keyiiiii",
@@ -31,9 +53,13 @@
     "@babel/preset-es2016": "^7.0.0-beta.46",
     "@babel/preset-es2017": "^7.0.0-beta.46",
     "@babel/preset-typescript": "^7.0.0-beta.45",
+    "@types/jest": "^23.3.1",
     "@types/ws": "^5.1.2",
+    "babel-core": "^7.0.0-0",
+    "babel-jest": "^23.4.2",
     "babel-preset-env": "^1.6.1",
     "husky": "^0.14.3",
+    "jest": "^23.5.0",
     "lint-staged": "^7.2.0",
     "nodemon": "^1.17.3",
     "npm-run-all": "^4.1.3",
