@@ -1,8 +1,8 @@
-import { transferValue } from '../state/account';
-import { generateBlock } from '../main';
-import { LEVY_RATE } from '../constant';
-import { TransactionPayload } from './transfer';
-import { Asset } from '../state/assets';
+import { transferValue } from '../../state/account';
+import { generateBlock } from '../../main';
+import { LEVY_RATE } from '../../constant';
+import { TransactionPayload } from '../transfer';
+import { Asset } from '../../state/assets';
 
 export function levyTransfer(
   payload: TransactionPayload,

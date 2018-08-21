@@ -3,8 +3,8 @@ import { NATIVE_TOKEN } from '../constant';
 import { getAsset } from '../state/assets';
 import { transferValue } from '../state/account';
 import { generateBlock } from '../main';
-import { levyTransfer } from './levy';
-import { cashbackTransfer } from './cashback';
+import { levyTransfer } from './optional/levy';
+import { cashbackTransfer } from './optional/cashback';
 
 export interface TransactionPayload {
   from: string;

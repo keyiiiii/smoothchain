@@ -1,8 +1,8 @@
-import { transferValue } from '../state/account';
-import { generateBlock } from '../main';
-import { CASHBACK_RATE } from '../constant';
-import { Asset } from '../state/assets';
-import { TransactionPayload } from './transfer';
+import { transferValue } from '../../state/account';
+import { generateBlock } from '../../main';
+import { CASHBACK_RATE } from '../../constant';
+import { Asset } from '../../state/assets';
+import { TransactionPayload } from '../transfer';
 
 export function cashbackTransfer(
   payload: TransactionPayload,
