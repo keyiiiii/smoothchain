@@ -8,6 +8,9 @@ export function levyTransfer(
   payload: TransactionPayload,
   asset: Asset,
 ): Object {
+  if (payload.assetId !== asset.id) {
+    return false;
+  }
   const value = Math.floor(payload.value * LEVY_RATE);
   // 送金者とトークン発行者が同じ場合は徴収を無視する
   if (asset.from !== payload.from) {
@@ -43,6 +46,7 @@ export function levyTransfer(
         to: asset.from,
         value,
         assetId: payload.assetId,
+        message: '',
       },
     };
     const levyBlock = generateBlock(levyData);
