@@ -1,0 +1,32 @@
+version: 2
+jobs:
+  test:
+    working_directory: ~/workspace
+    docker:
+      - image: node:9.3.0
+    environment:
+      TZ: /usr/share/zoneinfo/Asia/Tokyo
+    steps:
+      - checkout
+      - restore_cache:
+          key: projectname-{{ .Branch }}-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install dependencies
+          command: yarn
+      - run:
+          name: Lint
+          command: yarn run lint
+      - run:
+          name: Test
+          command: yarn run coverage
+      - save_cache:
+          key: projectname-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/workspace/node_modules
+            - ~/.cache/yarn/
+
+workflows:
+  version: 2
+  normal_test_workflow:
+    jobs:
+      - test
