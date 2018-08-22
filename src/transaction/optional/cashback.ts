@@ -8,6 +8,9 @@ export function cashbackTransfer(
   payload: TransactionPayload,
   asset: Asset,
 ): Object {
+  if (payload.assetId !== asset.id) {
+    return false;
+  }
   const value = Math.floor(payload.value * CASHBACK_RATE);
   // 通常分
   transferValue({
