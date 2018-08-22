@@ -3,7 +3,10 @@ import {
   getAccountAssets,
   getAccounts,
   getValue,
+  postAccount,
+  putAccount,
   replaceAccounts,
+  transferValue,
 } from './account';
 
 const accounts = {
@@ -29,6 +32,16 @@ const asset = [
     total: 10000,
   },
 ];
+
+beforeEach(() => {
+  const account = {
+    address: 'd10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306',
+    value: 10000,
+  };
+  const assetId =
+    '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f';
+  replaceAccounts([account], assetId);
+});
 
 describe('state account', () => {
   describe('getAccounts', () => {
@@ -89,6 +102,72 @@ describe('state account', () => {
           '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f',
         ),
       ).toEqual(10000);
+    });
+  });
+
+  describe('putAccount', () => {
+    it('accounts にある場合は置き換え', () => {
+      const account = {
+        address:
+          'd10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306',
+        value: 1,
+      };
+      const assetId =
+        '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f';
+      const result = [account];
+      putAccount(account, assetId);
+      expect(getAccounts()[assetId]).toEqual(result);
+    });
+
+    it('accounts にない場合は追加', () => {
+      const account = {
+        address: 'address',
+        value: 100,
+      };
+      const assetId = 'assetId';
+      const result = [account];
+      putAccount(account, assetId);
+      expect(getAccounts()[assetId]).toEqual(result);
+    });
+  });
+
+  describe('postAccount', () => {
+    it('正しい値が取得できるか', () => {
+      const account = {
+        address: 'address',
+        value: 200,
+      };
+      const assetId = 'assetId2';
+      const result = [account];
+      postAccount(account, assetId);
+      expect(getAccounts()[assetId]).toEqual(result);
+    });
+  });
+
+  describe('transferValue', () => {
+    it('正しい値が取得できるか', () => {
+      const assetId =
+        '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f';
+      const payload = {
+        from:
+          'd10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306',
+        to: 'address',
+        value: 100,
+        assetId,
+      };
+      const result = [
+        {
+          address:
+            'd10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306',
+          value: 9900,
+        },
+        {
+          address: 'address',
+          value: 100,
+        },
+      ];
+      transferValue(payload);
+      expect(getAccounts()[assetId]).toEqual(result);
     });
   });
 });
