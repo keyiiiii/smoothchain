@@ -20,7 +20,7 @@ export function calculateHashForBlock(block: Block): string {
   );
 }
 
-function getDifficulty(blockchain: Blockchain): number {
+export function getDifficulty(blockchain: Blockchain): number {
   const latestBlock = getLatestBlock(blockchain);
   if (
     latestBlock.index % MINING.DIFFICULTY_ADJUSTMENT_INTERVAL === 0 &&
@@ -33,7 +33,7 @@ function getDifficulty(blockchain: Blockchain): number {
 }
 
 // マイニング難易度調整
-function getAdjustedDifficulty(
+export function getAdjustedDifficulty(
   latestBlock: Block,
   blockchain: Blockchain,
 ): number {
@@ -51,7 +51,7 @@ function getAdjustedDifficulty(
   }
 }
 
-export function calculateHash(
+function calculateHash(
   index: number,
   previousHash: string,
   timestamp: number,
@@ -207,7 +207,7 @@ export function isValidChain(blockchainToValidate: Blockchain): boolean {
   return true;
 }
 
-export function addBlock(blockchain: Blockchain, newBlock: Block) {
+export function addBlock(blockchain: Blockchain, newBlock: Block): void {
   if (isValidNewBlock(newBlock, getLatestBlock(blockchain))) {
     blockchain.push(newBlock);
   }
