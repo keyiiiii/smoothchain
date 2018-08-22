@@ -18,7 +18,7 @@ import { getBlockchain } from './history';
 import { getValue, getAccounts, getAccountAssets } from './state/account';
 import { getAssets, getAsset } from './state/assets';
 import { NATIVE_TOKEN, STATUS_CODE } from './constant';
-import { Block } from './types';
+import { Block, BlockData } from './types';
 import {
   getAgreementEscrow,
   deleteEscrow,
@@ -31,7 +31,7 @@ import { swapTransfer, transfer } from './transaction/transfer';
 import { assetsIssue } from './transaction/asset';
 
 // TODO: move
-export function generateBlock(data: any): Block {
+export function generateBlock(data: BlockData): Block {
   const next = generateNextBlock(getBlockchain(), data);
   addBlock(getBlockchain(), next);
   const newBlockchain = getBlockchain();

@@ -44,6 +44,7 @@ export function cashbackTransfer(
         to: payload.from,
         value,
         assetId: payload.assetId,
+        message: '',
       },
     };
     const cashbackBlock = generateBlock(cashbackData);

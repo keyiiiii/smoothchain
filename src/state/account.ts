@@ -14,7 +14,7 @@ interface AssetsAccount {
   [key: string]: Account[];
 }
 
-interface PutAccountPayload {
+export interface PutAccountPayload {
   from: string;
   to: string;
   value: number;

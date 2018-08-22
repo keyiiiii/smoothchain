@@ -58,7 +58,7 @@ export function swapTransfer(payload: SwapTransactionPayload): Object {
     transfer: { ...sellTransfer, message: '' },
   };
 
-  return generateBlock([sellData, buyData]);
+  return [generateBlock(sellData), generateBlock(buyData)];
 }
 
 export function transfer(
