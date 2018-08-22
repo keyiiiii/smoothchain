@@ -22,7 +22,7 @@ export interface Escrow {
   from: string;
   sell: Asset;
   buy: Asset;
-  timestamp: string;
+  timestamp: number;
 }
 
 // TODO: immutable にする
