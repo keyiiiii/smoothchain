@@ -4,10 +4,17 @@
 
 import { NATIVE_TOKEN } from '../constant';
 
+interface Nft {
+  id: string;
+  meta: string;
+  total: number;
+}
+
 export interface Optional {
   transferable?: boolean;
   levy?: boolean;
   cashback?: boolean;
+  nft?: Nft[];
 }
 
 export interface Asset {
