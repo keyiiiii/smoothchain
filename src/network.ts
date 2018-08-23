@@ -17,7 +17,7 @@ import { getEscrows, replaceEscrows } from './state/escrow';
 const sockets = [];
 let reconnectTimeout;
 
-function responseChainMsg(blockchain: Blockchain): PeerMessage {
+export function responseChainMsg(blockchain: Blockchain): PeerMessage {
   return {
     type: MESSAGE_TYPE.RESPONSE_BLOCKCHAIN,
     data: JSON.stringify(blockchain),
@@ -37,7 +37,7 @@ export function responseLatestMsg(blockchain: Blockchain): PeerMessage {
   };
 }
 
-function queryAllMsg(): PeerMessage {
+export function queryAllMsg(): PeerMessage {
   return {
     type: MESSAGE_TYPE.QUERY_ALL,
     data: '',
@@ -47,7 +47,7 @@ function queryAllMsg(): PeerMessage {
   };
 }
 
-function queryChainLengthMsg(): PeerMessage {
+export function queryChainLengthMsg(): PeerMessage {
   return {
     type: MESSAGE_TYPE.QUERY_LATEST,
     data: '',
@@ -72,19 +72,19 @@ function replaceChain(newBlocks: Blockchain, blockchain: Blockchain): void {
   }
 }
 
-function handleReplaceAccounts(accountMessage: string) {
+function handleReplaceAccounts(accountMessage: string): void {
   const newAssetsAccount = JSON.parse(accountMessage);
   Object.keys(newAssetsAccount).forEach((assetId: string) => {
     replaceAccounts(newAssetsAccount[assetId], assetId);
   });
 }
 
-function handleReplaceEscrow(escrowMessage: string) {
+function handleReplaceEscrow(escrowMessage: string): void {
   const newEscrows = JSON.parse(escrowMessage);
   replaceEscrows(newEscrows);
 }
 
-function handleReplaceAssets(assetMessage: string) {
+function handleReplaceAssets(assetMessage: string): void {
   const newAssets = JSON.parse(assetMessage);
   replaceAssets(newAssets);
 }
