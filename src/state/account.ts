@@ -3,7 +3,7 @@
  */
 
 import { NATIVE_TOKEN } from '../constant';
-import { Asset, Assets, getAssets } from './assets';
+import { Asset, ChildAsset, getAssets } from './assets';
 
 interface Account {
   address: string;
@@ -11,7 +11,7 @@ interface Account {
 }
 
 interface AssetsAccount {
-  [key: string]: Account[];
+  [assetId: string]: Account[];
 }
 
 export interface PutAccountPayload {
@@ -44,7 +44,7 @@ export function getAccounts(): AssetsAccount {
 
 // Account に紐づく トークンリストを返す
 // TODO: めっちゃループしまくってるのでそろそろDB使ったほうがいいかも
-export function getAccountAssets(address: string): Assets {
+export function getAccountAssets(address: string): Asset[] {
   const assets = [];
   Object.keys(getAccounts()).forEach((assetId: string) => {
     getAccounts()[assetId].forEach((account: Account) => {
@@ -52,6 +52,14 @@ export function getAccountAssets(address: string): Assets {
         getAssets().forEach((asset: Asset) => {
           if (asset.id === assetId) {
             assets.push(asset);
+          } else {
+            // child assets
+            asset.children &&
+              asset.children.forEach((childAsset: ChildAsset) => {
+                if (childAsset.id === assetId) {
+                  assets.push(childAsset);
+                }
+              });
           }
         });
       }
