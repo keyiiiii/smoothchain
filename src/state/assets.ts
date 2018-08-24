@@ -4,18 +4,16 @@
 
 import { NATIVE_TOKEN } from '../constant';
 
-interface NonFungible {
-  name: string;
-  id: string;
-  meta: string;
-  total: number;
-}
-
 export interface Optional {
   transferable?: boolean;
   levy?: boolean;
   cashback?: boolean;
-  nonFungible?: NonFungible[];
+  reissuable?: boolean;
+}
+
+export interface ChildAsset extends Asset {
+  meta: string;
+  parentId: string;
 }
 
 export interface Asset {
@@ -26,13 +24,12 @@ export interface Asset {
   total: number;
   decimals: number;
   optional: Optional;
+  children?: ChildAsset[];
 }
-
-export type Assets = Asset[];
 
 // TODO: immutable にする
 // 初期値
-export let assets: Assets = [
+export let assets: Asset[] = [
   {
     id: NATIVE_TOKEN.ID,
     name: NATIVE_TOKEN.NAME,
@@ -47,12 +44,12 @@ export let assets: Assets = [
 ];
 
 // Assets の上書き
-export function replaceAssets(newAssets: Assets): void {
+export function replaceAssets(newAssets: Asset[]): void {
   assets = newAssets;
 }
 
 // すべての Assets を返す
-export function getAssets(): Assets {
+export function getAssets(): Asset[] {
   return [...assets];
 }
 
