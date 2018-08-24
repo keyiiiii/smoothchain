@@ -4,7 +4,8 @@
 
 import { NATIVE_TOKEN } from '../constant';
 
-interface Nft {
+interface NonFungible {
+  name: string;
   id: string;
   meta: string;
   total: number;
@@ -14,7 +15,7 @@ export interface Optional {
   transferable?: boolean;
   levy?: boolean;
   cashback?: boolean;
-  nft?: Nft[];
+  nonFungible?: NonFungible[];
 }
 
 export interface Asset {
