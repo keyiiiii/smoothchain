@@ -248,7 +248,7 @@ app.post('/api/swap/order', (req: Request, res: Response) => {
   // 一致しなかった場合は put する
   if (
     !agreementEscrows ||
-    (agreementEscrows.sell.value < buy.value &&
+    (agreementEscrows.sell.value < buy.value ||
       agreementEscrows.buy.value > sell.value)
   ) {
     putEscrows({ from, seed, sell, buy });
