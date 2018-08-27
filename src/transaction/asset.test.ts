@@ -94,6 +94,7 @@ describe('transaction asset', () => {
             optional: {},
             total: '100',
             decimals: '0',
+            meta: '',
           },
         ],
       };
@@ -108,8 +109,11 @@ describe('transaction asset', () => {
                 from: '1',
                 id:
                   '0039e10a15f591b748f93dcd1b0ef1d719dd96e18b274083c241db05219872c3',
+                meta: '',
                 name: 'child',
                 optional: {},
+                parentId:
+                  '1da8cf1b9a9862efe740d3168db0891a77be91cd7d3030e173705cde7db0eab4',
                 total: 100,
               },
             ],

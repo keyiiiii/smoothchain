@@ -42,6 +42,7 @@ export function assetsIssue(payload: AssetsIssuePayload): Block {
       children.push({
         from: child.from,
         id: childId,
+        parentId: id,
         name: child.name,
         description: child.description,
         total: childTotal,
