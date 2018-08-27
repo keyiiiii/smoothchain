@@ -5,14 +5,19 @@ import { postAccount } from '../state/account';
 import { generateBlock } from '../main';
 import { Block } from '../types';
 
+interface ChildAssetIssuePayload extends AssetsIssuePayload {
+  meta?: string;
+}
+
 interface AssetsIssuePayload {
   from: string;
-  seed: string;
+  seed?: string;
   name: string;
   description: string;
   optional: Optional;
-  total: number;
-  decimals: number;
+  total?: number;
+  decimals?: number;
+  children?: ChildAssetIssuePayload[];
 }
 
 export function assetsIssue(payload: AssetsIssuePayload): Block {
@@ -24,6 +29,30 @@ export function assetsIssue(payload: AssetsIssuePayload): Block {
   const timestamp = ~~(Date.now() / CONVERSIONS.sec);
   const id = SHA256(payload.seed + payload.name + timestamp).toString();
 
+  const children = [];
+  if (payload.children && payload.children.length > 0) {
+    payload.children.forEach((child: ChildAssetIssuePayload) => {
+      const childId = SHA256(
+        payload.seed + payload.name + child.name + timestamp,
+      ).toString();
+      children.push({
+        from: child.from,
+        id: childId,
+        name: child.name,
+        description: child.description,
+        total: child.total,
+        decimals: child.decimals,
+        optional: child.optional,
+        children: child.children || [],
+        meta: child.meta,
+      });
+
+      postAccount({ address: child.from, value: child.total }, childId);
+    });
+  } else {
+    postAccount({ address: payload.from, value: payload.total }, id);
+  }
+
   putAssets({
     from: payload.from,
     id,
@@ -32,8 +61,8 @@ export function assetsIssue(payload: AssetsIssuePayload): Block {
     total: payload.total,
     decimals: payload.decimals,
     optional: payload.optional,
+    children,
   });
-  postAccount({ address: payload.from, value: payload.total }, id);
 
   const data = {
     assets: {
@@ -44,6 +73,7 @@ export function assetsIssue(payload: AssetsIssuePayload): Block {
       total: payload.total,
       decimals: payload.decimals,
       optional: payload.optional,
+      children,
     },
   };
 

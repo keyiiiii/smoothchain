@@ -126,7 +126,7 @@ app.post('/api/transaction/revert', (req: Request, res: Response) => {
  * token作成
  */
 app.post('/api/assets/issue', (req: Request, res: Response) => {
-  const { from, seed, name, description, optional } = req.body;
+  const { from, seed, name, description, optional, children } = req.body;
   const total = parseInt(req.body.total, 10) || 0;
   const decimals = parseInt(req.body.decimals, 10) || 0;
 
@@ -139,6 +139,7 @@ app.post('/api/assets/issue', (req: Request, res: Response) => {
       optional,
       total,
       decimals,
+      children,
     });
     res.json(result);
   } catch (e) {

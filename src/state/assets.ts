@@ -12,7 +12,7 @@ export interface Optional {
 }
 
 export interface ChildAsset extends Asset {
-  meta: string;
+  meta?: string;
   parentId: string;
 }
 
@@ -57,6 +57,7 @@ export function getAssets(): Asset[] {
 export function putAssets(putAsset: Asset): void {
   replaceAssets(getAssets().filter((asset: Asset) => asset.id !== putAsset.id));
   assets.push(putAsset);
+  // TODO: reissue
 
   console.log('assets', assets);
 }
