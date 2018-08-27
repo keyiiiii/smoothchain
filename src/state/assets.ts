@@ -63,6 +63,18 @@ export function putAssets(putAsset: Asset): void {
   console.log('assets', assets);
 }
 
-export function getAsset(assetId: string): Asset {
-  return getAssets().find((asset: Asset) => asset.id === assetId);
+export function getAsset(assetId: string): Asset | ChildAsset {
+  return getAssets().find(
+    (asset: Asset): boolean => {
+      if (asset.id === assetId) {
+        return asset.id === assetId;
+      } else {
+        return !!asset.children.find(
+          (childAsset: ChildAsset): boolean => {
+            return childAsset.id === assetId;
+          },
+        );
+      }
+    },
+  );
 }
