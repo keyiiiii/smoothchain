@@ -64,17 +64,21 @@ export function putAssets(putAsset: Asset): void {
 }
 
 export function getAsset(assetId: string): Asset | ChildAsset {
-  return getAssets().find(
-    (asset: Asset): boolean => {
+  let result;
+  getAssets().forEach(
+    (asset: Asset): void => {
       if (asset.id === assetId) {
-        return asset.id === assetId;
-      } else {
-        return !!asset.children.find(
-          (childAsset: ChildAsset): boolean => {
-            return childAsset.id === assetId;
+        result = asset;
+      } else if (asset.children && asset.children.length > 0) {
+        asset.children.forEach(
+          (childAsset: ChildAsset): void => {
+            if (childAsset.id === assetId) {
+              result = childAsset;
+            }
           },
         );
       }
     },
   );
+  return result;
 }

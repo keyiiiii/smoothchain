@@ -102,7 +102,7 @@ describe('state assets', () => {
 
     it('正しい値が取得できるか children', () => {
       const childAssetId = 'NFT';
-      expect(getAsset(childAssetId)).toEqual(assets[0]);
+      expect(getAsset(childAssetId)).toEqual(assets[0].children[0]);
     });
   });
 });
