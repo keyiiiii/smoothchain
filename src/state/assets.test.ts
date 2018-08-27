@@ -3,7 +3,19 @@ import { getAssets, putAssets, replaceAssets, getAsset } from './assets';
 
 const assets = [
   {
-    children: [],
+    children: [
+      {
+        id: 'NFT',
+        decimals: 0,
+        description: 'NFT',
+        name: 'NFT',
+        optional: { transferable: true },
+        total: 1,
+        parentId:
+          '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f',
+        from: '',
+      },
+    ],
     decimals: 0,
     description: 'native token',
     from: '',
@@ -82,9 +94,16 @@ describe('state assets', () => {
   });
 
   describe('getAsset', () => {
-    const assetId =
-      '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f';
-    expect(getAsset(assetId)).toEqual(assets[0]);
+    it('正しい値が取得できるか parent', () => {
+      const assetId =
+        '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f';
+      expect(getAsset(assetId)).toEqual(assets[0]);
+    });
+
+    it('正しい値が取得できるか children', () => {
+      const childAssetId = 'NFT';
+      expect(getAsset(childAssetId)).toEqual(assets[0]);
+    });
   });
 });
 // tslint:enable:no-magic-numbers
