@@ -34,8 +34,8 @@ describe('transaction asset', () => {
         name: 'name',
         description: 'hoge',
         optional: {},
-        total: 10000,
-        decimals: 0,
+        total: '10000',
+        decimals: '0',
       };
       expect(() => assetsIssue(payload)).toThrowError('UNAUTHORIZED');
     });
@@ -48,8 +48,8 @@ describe('transaction asset', () => {
         name: 'name',
         description: 'hoge',
         optional: {},
-        total: 10000,
-        decimals: 0,
+        total: '10000',
+        decimals: '0',
       };
       const result = {
         data: {
@@ -84,16 +84,16 @@ describe('transaction asset', () => {
         name: 'name',
         description: 'hoge',
         optional: {},
-        total: 10000,
-        decimals: 0,
+        total: '10000',
+        decimals: '0',
         children: [
           {
             from: '1',
             name: 'child',
             description: 'NFT',
             optional: {},
-            total: 100,
-            decimals: 0,
+            total: '100',
+            decimals: '0',
           },
         ],
       };

@@ -15,8 +15,8 @@ interface AssetsIssuePayload {
   name: string;
   description: string;
   optional: Optional;
-  total?: number;
-  decimals?: number;
+  total?: string;
+  decimals?: string;
   children?: ChildAssetIssuePayload[];
 }
 
@@ -28,10 +28,14 @@ export function assetsIssue(payload: AssetsIssuePayload): Block {
 
   const timestamp = ~~(Date.now() / CONVERSIONS.sec);
   const id = SHA256(payload.seed + payload.name + timestamp).toString();
+  const total = parseInt(payload.total, 10) || 0;
+  const decimals = parseInt(payload.decimals, 10) || 0;
 
   const children = [];
   if (payload.children && payload.children.length > 0) {
     payload.children.forEach((child: ChildAssetIssuePayload) => {
+      const childTotal = parseInt(child.total, 10) || 0;
+      const childDecimals = parseInt(child.decimals, 10) || 0;
       const childId = SHA256(
         payload.seed + payload.name + child.name + timestamp,
       ).toString();
@@ -40,17 +44,17 @@ export function assetsIssue(payload: AssetsIssuePayload): Block {
         id: childId,
         name: child.name,
         description: child.description,
-        total: child.total,
-        decimals: child.decimals,
+        total: childTotal,
+        decimals: childDecimals,
         optional: child.optional,
         children: child.children || [],
         meta: child.meta,
       });
 
-      postAccount({ address: child.from, value: child.total }, childId);
+      postAccount({ address: child.from, value: childTotal }, childId);
     });
   } else {
-    postAccount({ address: payload.from, value: payload.total }, id);
+    postAccount({ address: payload.from, value: total }, id);
   }
 
   putAssets({
@@ -58,8 +62,8 @@ export function assetsIssue(payload: AssetsIssuePayload): Block {
     id,
     name: payload.name,
     description: payload.description,
-    total: payload.total,
-    decimals: payload.decimals,
+    total,
+    decimals,
     optional: payload.optional,
     children,
   });
@@ -70,8 +74,8 @@ export function assetsIssue(payload: AssetsIssuePayload): Block {
       from: payload.from,
       name: payload.name,
       description: payload.description,
-      total: payload.total,
-      decimals: payload.decimals,
+      total,
+      decimals,
       optional: payload.optional,
       children,
     },
