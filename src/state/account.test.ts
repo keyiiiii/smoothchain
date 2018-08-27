@@ -21,14 +21,13 @@ const accounts = {
 
 const asset = [
   {
+    children: [],
     decimals: 0,
     description: 'native token',
     from: '',
     id: '18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f',
     name: 'native token',
-    optional: {
-      transferable: true,
-    },
+    optional: { transferable: true },
     total: 10000,
   },
 ];

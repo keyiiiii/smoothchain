@@ -40,6 +40,7 @@ export let assets: Asset[] = [
     optional: {
       transferable: true,
     },
+    children: [],
   },
 ];
 

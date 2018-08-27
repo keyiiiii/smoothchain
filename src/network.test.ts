@@ -35,7 +35,7 @@ describe('network', () => {
         accounts:
           '{"18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f":[{"address":"d10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306","value":10000}]}',
         assets:
-          '[{"id":"18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f","name":"native token","description":"native token","total":10000,"decimals":0,"from":"","optional":{"transferable":true}}]',
+          '[{"id":"18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f","name":"native token","description":"native token","total":10000,"decimals":0,"from":"","optional":{"transferable":true},"children":[]}]',
         data:
           '[{"data":{},"difficulty":10,"hash":"816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7","index":1,"nonce":1,"previousHash":"0","timestamp":1465154705},{"data":{},"difficulty":10,"hash":"816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7","index":2,"nonce":2,"previousHash":"0","timestamp":1465154705}]',
         escrow: '[]',
@@ -73,7 +73,7 @@ describe('network', () => {
         accounts:
           '{"18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f":[{"address":"d10a95cf20878d34941ab7e49f2f502d886b721fb192c43106b64a7890d46306","value":10000}]}',
         assets:
-          '[{"id":"18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f","name":"native token","description":"native token","total":10000,"decimals":0,"from":"","optional":{"transferable":true}}]',
+          '[{"id":"18f6708186322cad57b5cf28a015e25d2bfa932f6379e01002e9b3f9608ab48f","name":"native token","description":"native token","total":10000,"decimals":0,"from":"","optional":{"transferable":true},"children":[]}]',
         data:
           '[{"data":{},"difficulty":10,"hash":"816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7","index":2,"nonce":2,"previousHash":"0","timestamp":1465154705}]',
         escrow: '[]',
