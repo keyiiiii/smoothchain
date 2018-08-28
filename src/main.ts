@@ -88,8 +88,10 @@ app.post('/api/transaction', (req: Request, res: Response) => {
       value,
     });
     res.json(result);
+    return;
   } catch (e) {
     res.status(STATUS_CODE[e.message]).send();
+    return;
   }
 });
 
@@ -117,8 +119,10 @@ app.post('/api/transaction/revert', (req: Request, res: Response) => {
       owner,
     );
     res.json(result);
+    return;
   } catch (e) {
     res.status(STATUS_CODE[e.message]).send();
+    return;
   }
 });
 
@@ -149,8 +153,10 @@ app.post('/api/assets/issue', (req: Request, res: Response) => {
       children,
     });
     res.json(result);
+    return;
   } catch (e) {
     res.status(STATUS_CODE[e.message]).send();
+    return;
   }
 });
 
@@ -225,8 +231,9 @@ app.post('/api/swap/order', (req: Request, res: Response) => {
     assetId: req.body.buy.assetId,
     value: parseInt(req.body.buy.value, 10),
   };
-  if (!(sell.assetId && sell.value && buy.assetId && buy.value)) {
+  if (!sell.assetId || !sell.value || !buy.assetId || !buy.value) {
     res.status(STATUS_CODE.BAD_REQUEST).send();
+    return;
   }
 
   let transactionResult: Object;
@@ -242,13 +249,14 @@ app.post('/api/swap/order', (req: Request, res: Response) => {
     });
   } catch (e) {
     res.status(STATUS_CODE[e.message]).send();
+    return;
   }
   // 売りと買いが一致する escrow を探す
   const agreementEscrows = getAgreementEscrow(sell, buy);
   // 一致しなかった場合は put する
   if (
     !agreementEscrows ||
-    (agreementEscrows.sell.value < buy.value &&
+    (agreementEscrows.sell.value < buy.value ||
       agreementEscrows.buy.value > sell.value)
   ) {
     putEscrows({ from, seed, sell, buy });
